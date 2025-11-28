@@ -13,6 +13,8 @@ const mockPoster = {
     year: '2024',
     price: 5000,
     image_url: 'https://example.com/poster.jpg',
+    grid_thumbnail_url: 'https://example.com/poster-grid.jpg',
+    blur_placeholder_url: 'https://example.com/poster-blur.jpg',
   },
 };
 
@@ -69,7 +71,8 @@ describe('PosterCard', () => {
       </BrowserRouter>
     );
     const image = screen.getByAltText('Test Poster');
-    expect(image).toHaveAttribute('src', 'https://example.com/poster.jpg');
+    // Should use grid thumbnail by default
+    expect(image).toHaveAttribute('src', 'https://example.com/poster-grid.jpg');
   });
 
   it('links to poster detail page', () => {
@@ -80,5 +83,43 @@ describe('PosterCard', () => {
     );
     const link = screen.getByRole('link');
     expect(link).toHaveAttribute('href', '/poster/1');
+  });
+
+  it('uses grid thumbnail for main image when available', () => {
+    render(
+      <BrowserRouter>
+        <PosterCard poster={mockPoster} />
+      </BrowserRouter>
+    );
+    const image = screen.getByAltText('Test Poster');
+    expect(image).toHaveAttribute('src', 'https://example.com/poster-grid.jpg');
+  });
+
+  it('renders blur placeholder for progressive loading', () => {
+    const { container } = render(
+      <BrowserRouter>
+        <PosterCard poster={mockPoster} />
+      </BrowserRouter>
+    );
+    const blurImage = container.querySelector('img[src="https://example.com/poster-blur.jpg"]');
+    expect(blurImage).toBeInTheDocument();
+    expect(blurImage).toHaveStyle({ filter: 'blur(10px)' });
+  });
+
+  it('falls back to image_url when grid_thumbnail_url is not available', () => {
+    const posterWithoutThumbnail = {
+      ...mockPoster,
+      attributes: {
+        ...mockPoster.attributes,
+        grid_thumbnail_url: null,
+      },
+    };
+    render(
+      <BrowserRouter>
+        <PosterCard poster={posterWithoutThumbnail} />
+      </BrowserRouter>
+    );
+    const image = screen.getByAltText('Test Poster');
+    expect(image).toHaveAttribute('src', 'https://example.com/poster.jpg');
   });
 });
