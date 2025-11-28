@@ -9,7 +9,7 @@ volumes:
 
 services:
   traefik:
-    image: traefik:v2.10
+    image: traefik:v3.2
     container_name: art-exchange-traefik
     networks:
       - web
