@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: art-exchange-traefik
+    networks:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/acme.json:/acme.json
+    command:
+      # Enable Docker provider
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+
+      # Define entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      # HTTP to HTTPS redirect
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+
+      # Let's Encrypt configuration
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/acme.json"
+    restart: unless-stopped
+
+  web:
+    # Override to use pre-built image from GHCR instead of building locally
+    image: ghcr.io/taylor01/the-art-exchange-app:${IMAGE_TAG:-latest}
+    build: null
+
+    # Remove port exposure - Traefik will handle routing
+    ports: []
+
+    # Override environment for production
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=${VITE_API_URL}
+
+    # Traefik labels for routing
+    labels:
+      - "traefik.enable=true"
+
+      # HTTP router (will redirect to HTTPS)
+      - "traefik.http.routers.art-exchange-web.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.art-exchange-web.entrypoints=web"
+
+      # HTTPS router
+      - "traefik.http.routers.art-exchange-web-secure.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.art-exchange-web-secure.entrypoints=websecure"
+      - "traefik.http.routers.art-exchange-web-secure.tls=true"
+      - "traefik.http.routers.art-exchange-web-secure.tls.certresolver=letsencrypt"
+
+      # Service configuration
+      - "traefik.http.services.art-exchange-web.loadbalancer.server.port=80"
