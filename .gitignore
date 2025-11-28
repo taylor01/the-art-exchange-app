@@ -16,9 +16,6 @@ dist-ssr
 .env
 !.env.example
 
-# Traefik SSL certificates
-traefik/
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

@@ -41,14 +41,7 @@ For production deployment with Traefik and automatic SSL:
 
 ### Initial Setup
 
-1. **Create acme.json file for Let's Encrypt certificates:**
-   ```bash
-   mkdir -p traefik
-   touch traefik/acme.json
-   chmod 600 traefik/acme.json
-   ```
-
-2. **Configure environment variables:**
+1. **Configure environment variables:**
    ```bash
    # Copy and edit .env file
    cp .env.example .env
@@ -68,11 +61,11 @@ For production deployment with Traefik and automatic SSL:
    ACME_EMAIL=your-email@example.com
    ```
 
-3. **Ensure DNS is configured:**
-   - Point `app.theartexch.com` to your droplet's IP address
+2. **Ensure DNS is configured:**
+   - Point your domain to your droplet's IP address
    - Allow propagation time (usually a few minutes)
 
-4. **Firewall configuration:**
+3. **Firewall configuration:**
    ```bash
    # Allow HTTP and HTTPS
    sudo ufw allow 80/tcp
@@ -96,6 +89,7 @@ The production setup:
   - Port 443 (HTTPS) - serves traffic with SSL
   - Automatic Let's Encrypt SSL certificate provisioning
   - Automatic certificate renewal (every 90 days)
+  - SSL certificates stored in Docker volume (persist across restarts)
 - Web container:
   - No exposed ports (private network only)
   - Traefik routes traffic to it via Docker network
@@ -182,10 +176,10 @@ docker-compose -f docker-compose.yml -f docker-compose.production.yml exec web s
 
 If Let's Encrypt fails:
 1. Check Traefik logs: `docker-compose -f docker-compose.yml -f docker-compose.production.yml logs traefik`
-2. Verify DNS points to your server: `nslookup app.theartexch.com`
+2. Verify DNS points to your server: `nslookup your-domain.com`
 3. Ensure ports 80/443 are open: `sudo ufw status`
-4. Check acme.json permissions: `ls -la traefik/acme.json` (should be 600)
-5. Verify domain in .env matches DNS: `grep DOMAIN .env`
+4. Verify domain in .env matches DNS: `grep DOMAIN .env`
+5. Ensure ACME_EMAIL is set: `grep ACME_EMAIL .env`
 
 ### Certificate Testing
 
@@ -215,9 +209,8 @@ docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d
 
 ## Production Checklist
 
-- [ ] Create `traefik/acme.json` with 600 permissions
-- [ ] Set production API URL in `.env`
-- [ ] Set `DOMAIN` in `.env`
+- [ ] Set production API URL in `.env` (VITE_API_URL)
+- [ ] Set `DOMAIN` in `.env` (your domain name)
 - [ ] Set `ACME_EMAIL` in `.env` for Let's Encrypt notifications
 - [ ] Configure DNS records pointing to server
 - [ ] Configure firewall rules (ports 80, 443)

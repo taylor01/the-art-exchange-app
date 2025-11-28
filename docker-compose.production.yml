@@ -1,5 +1,12 @@
 version: '3.8'
 
+networks:
+  web:
+    driver: bridge
+
+volumes:
+  traefik-certs:
+
 services:
   traefik:
     image: traefik:v2.10
@@ -11,7 +18,7 @@ services:
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./traefik/acme.json:/acme.json
+      - traefik-certs:/acme.json
     command:
       # Enable Docker provider
       - "--providers.docker=true"
@@ -40,10 +47,9 @@ services:
     # Remove port exposure - Traefik will handle routing
     ports: []
 
-    # Override environment for production
-    environment:
-      - NODE_ENV=production
-      - VITE_API_URL=${VITE_API_URL}
+    # Add to web network for Traefik routing
+    networks:
+      - web
 
     # Traefik labels for routing
     labels:

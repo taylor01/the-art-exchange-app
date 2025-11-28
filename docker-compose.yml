@@ -1,9 +1,5 @@
 version: '3.8'
 
-networks:
-  web:
-    driver: bridge
-
 services:
   web:
     build:
@@ -12,8 +8,6 @@ services:
     container_name: art-exchange-web
     ports:
       - "${PORT:-3001}:80"
-    networks:
-      - web
     env_file:
       - .env
     environment:
