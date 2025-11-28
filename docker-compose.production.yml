@@ -9,7 +9,7 @@ volumes:
 
 services:
   traefik:
-    image: traefik:v3.2
+    image: traefik:latest
     container_name: art-exchange-traefik
     networks:
       - web
@@ -18,7 +18,7 @@ services:
       - "443:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik-certs:/acme.json
+      - traefik-certs:/letsencrypt
     command:
       # Enable Docker provider
       - "--providers.docker=true"
@@ -36,7 +36,7 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     restart: unless-stopped
 
   web:
