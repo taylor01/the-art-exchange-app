@@ -29,8 +29,9 @@ export const useAuthStore = create(
       login: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
+          const apiUrl = window.APP_CONFIG?.API_URL || import.meta.env.VITE_API_URL;
           const response = await fetch(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'}/auth/login`,
+            `${apiUrl}/auth/login`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -64,8 +65,9 @@ export const useAuthStore = create(
       signup: async (userData) => {
         set({ isLoading: true, error: null });
         try {
+          const apiUrl = window.APP_CONFIG?.API_URL || import.meta.env.VITE_API_URL;
           const response = await fetch(
-            `${import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'}/auth/signup`,
+            `${apiUrl}/auth/signup`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
