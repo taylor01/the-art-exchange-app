@@ -1,13 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import client from '../api/client';
 import PosterCard from '../components/PosterCard';
 
 export default function Gallery() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [posters, setPosters] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
   const [totalCount, setTotalCount] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [filters, setFilters] = useState({
@@ -30,42 +34,188 @@ export default function Gallery() {
     years: false,
   });
 
+  const observerTarget = useRef(null);
+  const prefetchTriggered = useRef(false);
+  const isInitialMount = useRef(true);
+  const PER_PAGE = 40;
+
+  // Initialize state from URL on mount
   useEffect(() => {
-    fetchPosters();
+    const urlArtists = searchParams.getAll('artist');
+    const urlVenues = searchParams.getAll('venue');
+    const urlBands = searchParams.getAll('band');
+    const urlYears = searchParams.getAll('year');
+    const urlQuery = searchParams.get('q') || '';
+    const urlSort = searchParams.get('sort') || 'newest';
+
+    setFilters({
+      artists: urlArtists.map(Number).filter(Boolean),
+      venues: urlVenues.map(Number).filter(Boolean),
+      bands: urlBands.map(Number).filter(Boolean),
+      years: urlYears.map(Number).filter(Boolean),
+    });
+    setSearchQuery(urlQuery);
+    setSortBy(urlSort);
+
+    isInitialMount.current = false;
+  }, []);
+
+  // Update URL when filters/search/sort change (skip on initial mount)
+  useEffect(() => {
+    if (isInitialMount.current) return;
+
+    const newParams = new URLSearchParams();
+
+    // Add filters to URL
+    filters.artists.forEach(id => newParams.append('artist', id));
+    filters.venues.forEach(id => newParams.append('venue', id));
+    filters.bands.forEach(id => newParams.append('band', id));
+    filters.years.forEach(id => newParams.append('year', id));
+
+    // Add search query
+    if (searchQuery) {
+      newParams.set('q', searchQuery);
+    }
+
+    // Add sort
+    if (sortBy !== 'newest') {
+      newParams.set('sort', sortBy);
+    }
+
+    setSearchParams(newParams, { replace: true });
+  }, [filters, searchQuery, sortBy]);
+
+  // Reset to page 1 when filters/search/sort change
+  useEffect(() => {
+    if (isInitialMount.current) return;
+
+    setCurrentPage(1);
+    setPosters([]);
+    setHasMore(true);
+    prefetchTriggered.current = false;
+    fetchPosters(1, true);
   }, [searchQuery, filters, sortBy]);
 
   useEffect(() => {
     fetchFacets();
   }, []);
 
-  const fetchPosters = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const params = {};
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading && !loadingMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
 
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
+    };
+  }, [hasMore, loading, loadingMore, currentPage]);
+
+  // Prefetch next page when user scrolls to 80% of current content
+  useEffect(() => {
+    const handleScroll = () => {
+      if (prefetchTriggered.current || !hasMore || loadingMore || loading) return;
+
+      const scrollHeight = document.documentElement.scrollHeight;
+      const scrollTop = window.scrollY;
+      const clientHeight = window.innerHeight;
+      const scrollPercent = (scrollTop + clientHeight) / scrollHeight;
+
+      // Prefetch when user has scrolled 80% of the content
+      if (scrollPercent > 0.8) {
+        prefetchTriggered.current = true;
+        loadMore();
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasMore, loadingMore, loading, currentPage]);
+
+  const fetchPosters = async (page = 1, reset = false) => {
+    if (reset) {
+      setLoading(true);
+    } else {
+      setLoadingMore(true);
+    }
+    setError('');
+
+    try {
+      const params = {
+        page,
+        per_page: PER_PAGE,
+      };
+
+      // Search query
       if (searchQuery) {
-        params.q = searchQuery;
+        params.query = searchQuery;
       }
 
-      if (filters.artists.length > 0) params.artists = filters.artists;
-      if (filters.venues.length > 0) params.venues = filters.venues;
-      if (filters.bands.length > 0) params.bands = filters.bands;
-      if (filters.years.length > 0) params.years = filters.years;
+      // Filters - using correct API parameter names
+      // Artists: multi-select array
+      if (filters.artists.length > 0) {
+        params.artist_ids = filters.artists;
+      }
+
+      // Band: single value (using first selected)
+      if (filters.bands.length > 0) {
+        params.band_id = filters.bands[0];
+      }
+
+      // Venue: single value (using first selected)
+      if (filters.venues.length > 0) {
+        params.venue_id = filters.venues[0];
+      }
+
+      // Year: single value (using first selected)
+      if (filters.years.length > 0) {
+        params.year = filters.years[0];
+      }
+
       if (sortBy) params.sort = sortBy;
 
-      const response = await client.get('/posters', { params });
+      // Use /posters/search endpoint for faceted search
+      const response = await client.get('/posters/search', { params });
       const data = response.data;
 
-      setPosters(data.data || []);
-      setTotalCount(data.meta?.total_count || 0);
+      const newPosters = data.data || [];
+      const total = data.meta?.total_count || 0;
+
+      if (reset) {
+        setPosters(newPosters);
+      } else {
+        setPosters(prev => [...prev, ...newPosters]);
+      }
+
+      setTotalCount(total);
+      setHasMore(newPosters.length === PER_PAGE && posters.length + newPosters.length < total);
+      prefetchTriggered.current = false;
     } catch (err) {
       setError('Failed to fetch posters');
       console.error(err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
+
+  const loadMore = useCallback(() => {
+    if (!hasMore || loading || loadingMore) return;
+    const nextPage = currentPage + 1;
+    setCurrentPage(nextPage);
+    fetchPosters(nextPage, false);
+  }, [currentPage, hasMore, loading, loadingMore]);
 
   const fetchFacets = async () => {
     try {
@@ -341,13 +491,36 @@ export default function Gallery() {
               </button>
             </div>
           ) : (
-            <div className="row g-4">
-              {posters.map((poster) => (
-                <div key={poster.id} className="col-sm-6 col-lg-4 col-xl-3">
-                  <PosterCard poster={poster} />
+            <>
+              <div className="row g-4">
+                {posters.map((poster) => (
+                  <div key={poster.id} className="col-sm-6 col-lg-4 col-xl-3">
+                    <PosterCard poster={poster} />
+                  </div>
+                ))}
+              </div>
+
+              {/* Loading indicator for infinite scroll */}
+              {loadingMore && (
+                <div className="text-center py-4">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading more posters...</span>
+                  </div>
                 </div>
-              ))}
-            </div>
+              )}
+
+              {/* Intersection observer target */}
+              <div ref={observerTarget} style={{ height: '20px' }} />
+
+              {/* End of results message */}
+              {!hasMore && posters.length > 0 && (
+                <div className="text-center py-4">
+                  <p className="mb-0" style={{ fontSize: '0.875rem', color: 'var(--stone-500)' }}>
+                    You've reached the end of the gallery
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

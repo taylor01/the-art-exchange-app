@@ -1,11 +1,21 @@
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useState } from 'react';
 
 export default function PosterCard({ poster }) {
+  const location = useLocation();
   const attributes = poster.attributes;
-  const imageUrl = attributes.image_url || '/placeholder.jpg';
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Use grid_thumbnail for gallery, with blur placeholder for progressive loading
+  const blurUrl = attributes.blur_placeholder_url;
+  const imageUrl = attributes.grid_thumbnail_url || attributes.image_url || '/placeholder.jpg';
 
   return (
-    <Link to={`/poster/${poster.id}`} className="text-decoration-none">
+    <Link
+      to={`/poster/${poster.id}`}
+      state={{ from: location.pathname + location.search }}
+      className="text-decoration-none"
+    >
       <div className="bg-white rounded overflow-hidden h-100" style={{
         boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
         transition: 'all 0.2s ease-in-out'
@@ -13,19 +23,42 @@ export default function PosterCard({ poster }) {
       onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1)'}
       onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 1px 3px 0 rgba(0, 0, 0, 0.1)'}
       >
-        {/* Poster Image */}
+        {/* Poster Image with blur-up loading */}
         <div className="position-relative overflow-hidden" style={{
           aspectRatio: '3/4',
           backgroundColor: 'var(--stone-100)'
         }}>
           {imageUrl ? (
-            <img
-              src={imageUrl}
-              alt={attributes.title || 'Poster'}
-              loading="lazy"
-              className="w-100 h-100"
-              style={{ objectFit: 'contain' }}
-            />
+            <>
+              {/* Blur placeholder - loads instantly */}
+              {blurUrl && (
+                <img
+                  src={blurUrl}
+                  alt=""
+                  className="w-100 h-100 position-absolute top-0 start-0"
+                  style={{
+                    objectFit: 'contain',
+                    filter: 'blur(10px)',
+                    transform: 'scale(1.1)',
+                    opacity: imageLoaded ? 0 : 1,
+                    transition: 'opacity 0.3s ease-in-out'
+                  }}
+                />
+              )}
+              {/* Full resolution image */}
+              <img
+                src={imageUrl}
+                alt={attributes.title || 'Poster'}
+                loading="lazy"
+                className="w-100 h-100 position-relative"
+                style={{
+                  objectFit: 'contain',
+                  opacity: imageLoaded ? 1 : 0,
+                  transition: 'opacity 0.3s ease-in-out'
+                }}
+                onLoad={() => setImageLoaded(true)}
+              />
+            </>
           ) : (
             <div className="w-100 h-100 d-flex align-items-center justify-content-center" style={{
               background: 'linear-gradient(to bottom right, var(--stone-200), var(--stone-300))'

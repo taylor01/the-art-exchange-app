@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import client from '../api/client';
 import { useAuthStore } from '../store/authStore';
 
 export default function PosterDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuthStore();
   const [poster, setPoster] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -89,11 +90,14 @@ export default function PosterDetail() {
 
   const attributes = poster.attributes;
 
+  // Get the referrer path from location state, or default to /gallery
+  const backToGallery = location.state?.from || '/gallery';
+
   return (
     <div className="container py-5">
       <button
         className="btn btn-outline-secondary mb-4"
-        onClick={() => navigate('/gallery')}
+        onClick={() => navigate(backToGallery)}
       >
         ← Back to Gallery
       </button>
