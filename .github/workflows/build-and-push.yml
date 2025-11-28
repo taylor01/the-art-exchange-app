@@ -1,0 +1,364 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+      - 'v*.*'
+  pull_request:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: the-art-exchange-app
+  ARTIFACT_RETENTION_DAYS: 7  # Shorter retention for development artifacts
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test:run
+
+  build-and-push:
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/taylor01/${{ env.IMAGE_NAME }}
+          tags: |
+            # Git tags: v1.0.0 → v1.0.0, v1.0, v1
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            # Branches: main → main, latest
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+          labels: |
+            org.opencontainers.image.title=The Art Exchange Web App
+            org.opencontainers.image.description=React web application for concert poster collectors
+            org.opencontainers.image.url=https://github.com/${{ github.repository }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  create-deployment-package:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    permissions:
+      contents: write
+      packages: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create docker-compose.ghcr.yml
+        run: |
+          set -euo pipefail
+          cat > docker-compose.ghcr.yml << EOF
+          # Auto-generated file - DO NOT EDIT
+          # This file contains image references for production deployment from GHCR
+          # Generated on: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          # Commit: ${{ github.sha }}
+          # Branch: ${{ github.ref_name }}
+          #
+          # Usage:
+          #   docker-compose -f docker-compose.yml -f docker-compose.ghcr.yml pull
+          #   docker-compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
+
+          version: '3.8'
+
+          services:
+            web:
+              image: \${REGISTRY:-ghcr.io}/taylor01/the-art-exchange-app:\${IMAGE_TAG:-${{ github.ref_name }}}
+              build: null  # Disable build, use pre-built image
+          EOF
+
+      - name: Sanitize branch name for artifact
+        id: sanitize
+        run: |
+          SANITIZED_BRANCH=$(echo "${{ github.ref_name }}" | sed 's/\//-/g')
+          echo "branch_name=${SANITIZED_BRANCH}" >> $GITHUB_OUTPUT
+
+      - name: Create deployment artifact
+        run: |
+          set -euo pipefail
+          mkdir -p deployment
+          cp docker-compose.yml deployment/
+          cp docker-compose.ghcr.yml deployment/
+          cp .env.example deployment/
+          cp nginx.conf deployment/
+          cp Dockerfile deployment/
+
+          # Create deployment README
+          cat > deployment/README.md << 'EOF'
+          # The Art Exchange - Production Deployment from GHCR
+
+          This deployment package contains configuration files for deploying The Art Exchange web app using pre-built Docker images from GitHub Container Registry (GHCR).
+
+          ## What's Included
+
+          - `docker-compose.yml` - Base service definition
+          - `docker-compose.ghcr.yml` - Pre-built image reference (auto-generated)
+          - `.env.example` - Environment variable template
+          - `nginx.conf` - nginx web server configuration
+          - `Dockerfile` - Reference Dockerfile (for local builds)
+
+          ## Prerequisites
+
+          - Linux server with Docker and Docker Compose installed
+          - GitHub account with access to the repository
+          - GitHub Personal Access Token with `read:packages` permission
+
+          ## Quick Start Deployment
+
+          ### 1. Configure Environment
+
+          ```bash
+          # Copy the template
+          cp .env.example .env
+
+          # Edit .env with your production values
+          nano .env
+
+          # REQUIRED: Set production API URL
+          #   VITE_API_URL=https://api.theartexch.com/api/v1
+          ```
+
+          ### 2. Login to GitHub Container Registry
+
+          ```bash
+          # Create a GitHub Personal Access Token at:
+          # https://github.com/settings/tokens/new
+          # Required scope: read:packages
+
+          echo YOUR_GITHUB_TOKEN | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+          ```
+
+          ### 3. Pull Pre-built Image
+
+          ```bash
+          # Pull production image (fast, no building!)
+          docker-compose -f docker-compose.yml -f docker-compose.ghcr.yml pull
+          ```
+
+          ### 4. Start Service
+
+          ```bash
+          # Start the application
+          docker-compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
+          ```
+
+          ### 5. Verify Deployment
+
+          ```bash
+          # Check container status
+          docker-compose ps
+
+          # Check health
+          curl http://localhost:3001/health
+
+          # View logs
+          docker-compose logs -f web
+          ```
+
+          ## Accessing the Application
+
+          - **Main App**: http://your-server:3001
+          - **Health Check**: http://your-server:3001/health
+
+          ## Build Information
+
+          - **Built from commit**: ${{ github.sha }}
+          - **Branch**: ${{ github.ref_name }}
+          - **Build date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          - **Docker Image**: `ghcr.io/taylor01/the-art-exchange-app:${{ github.ref_name }}`
+
+          ## Reverse Proxy Setup (Recommended)
+
+          For production with SSL/TLS, run behind nginx or Caddy:
+
+          ```nginx
+          server {
+              listen 443 ssl http2;
+              server_name theartexch.com;
+
+              ssl_certificate /path/to/cert.pem;
+              ssl_certificate_key /path/to/key.pem;
+
+              location / {
+                  proxy_pass http://localhost:3001;
+                  proxy_set_header Host \$host;
+                  proxy_set_header X-Real-IP \$remote_addr;
+                  proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto \$scheme;
+              }
+          }
+          ```
+
+          ## Troubleshooting
+
+          ### Images fail to pull
+          - Verify GitHub login: `docker logout ghcr.io && docker login ghcr.io`
+          - Check token has `read:packages` scope
+          - Verify you have access to taylor01/the-art-exchange-app
+
+          ### Services fail to start
+          - Check .env file is configured: `cat .env`
+          - Verify VITE_API_URL is set correctly
+          - Check logs: `docker-compose logs web`
+
+          ### Cannot access application
+          - Verify port 3001 is not already in use: `sudo lsof -i :3001`
+          - Check firewall rules
+          - Verify container is running: `docker ps`
+
+          ## Updating to New Version
+
+          ```bash
+          # Set new version in .env
+          echo "IMAGE_TAG=v1.2.0" >> .env
+
+          # Pull and restart
+          docker-compose -f docker-compose.yml -f docker-compose.ghcr.yml pull
+          docker-compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
+          ```
+
+          ## Rollback to Previous Version
+
+          ```bash
+          # Set previous version
+          echo "IMAGE_TAG=v1.1.0" >> .env
+
+          # Pull and restart
+          docker-compose -f docker-compose.yml -f docker-compose.ghcr.yml pull
+          docker-compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
+          ```
+
+          ## Support
+
+          For issues, please open a ticket at:
+          https://github.com/${{ github.repository }}/issues
+
+          Contact: hello@theartexch.com
+          EOF
+
+      - name: Upload deployment artifact (development builds)
+        if: "!startsWith(github.ref, 'refs/tags/v')"
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-${{ steps.sanitize.outputs.branch_name }}-${{ github.sha }}
+          path: deployment/
+          retention-days: ${{ env.ARTIFACT_RETENTION_DAYS }}
+
+      - name: Set build timestamp
+        if: startsWith(github.ref, 'refs/tags/v')
+        id: timestamp
+        run: echo "timestamp=$(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_OUTPUT
+
+      - name: Create release tarball (version tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          cd deployment
+          tar -czf ../the-art-exchange-deployment-${{ github.ref_name }}.tar.gz .
+          cd ..
+
+      - name: Create GitHub Release (version tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: the-art-exchange-deployment-${{ github.ref_name }}.tar.gz
+          body: |
+            # The Art Exchange ${{ github.ref_name }} Production Deployment
+
+            ## Download and Deploy
+
+            ```bash
+            # Download deployment package
+            curl -LO https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/the-art-exchange-deployment-${{ github.ref_name }}.tar.gz
+
+            # Extract
+            mkdir -p the-art-exchange-deployment
+            tar -xzf the-art-exchange-deployment-${{ github.ref_name }}.tar.gz -C the-art-exchange-deployment
+            cd the-art-exchange-deployment
+
+            # Configure environment
+            cp .env.example .env
+            nano .env  # Edit with your production API URL
+
+            # Login to GHCR
+            echo YOUR_GITHUB_TOKEN | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
+
+            # Deploy
+            docker-compose -f docker-compose.yml -f docker-compose.ghcr.yml pull
+            docker-compose -f docker-compose.yml -f docker-compose.ghcr.yml up -d
+            ```
+
+            ## What's Included
+
+            - Pre-built Docker image on GHCR: `ghcr.io/taylor01/the-art-exchange-app:${{ github.ref_name }}`
+            - Production-ready docker-compose configuration
+            - Environment variable templates
+            - Complete deployment documentation
+
+            ## Build Information
+
+            - **Commit**: ${{ github.sha }}
+            - **Build Date**: ${{ steps.timestamp.outputs.timestamp }}
+            - **Docker Image**: `ghcr.io/taylor01/the-art-exchange-app:${{ github.ref_name }}`
+
+            ## Documentation
+
+            See the included `README.md` in the deployment package for full instructions.
+
+            ## Support
+
+            - Email: hello@theartexch.com
+            - Issues: https://github.com/${{ github.repository }}/issues
+          draft: false
+          prerelease: false
