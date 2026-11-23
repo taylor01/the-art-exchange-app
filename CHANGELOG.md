@@ -22,6 +22,11 @@ All notable changes to this project are recorded here. The format follows
 - On a copy listed for sale, a note when the For sale list is private: buyers won't see it
   until the list is public.
 
+### Changed
+
+- The poster page asks the API only for the collector's copies of that poster
+  (`GET /user_posters?poster_id=`, API #78) instead of their whole wall.
+
 ## [0.2.0] - 2026-11-23
 
 ### Changed

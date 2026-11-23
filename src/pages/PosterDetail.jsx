@@ -264,7 +264,7 @@ function Recordings({ state }) {
 function WallActions({ poster, signedIn }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const mine = useApi(() => (signedIn ? listCopies() : null), [signedIn, poster.id]);
+  const mine = useApi(() => (signedIn ? listCopies({ poster_id: poster.id }) : null), [signedIn, poster.id]);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState('');
 
