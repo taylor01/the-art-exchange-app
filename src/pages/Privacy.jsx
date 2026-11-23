@@ -1,190 +1,120 @@
+// Plain-language privacy policy. Keep it true to what the app and API
+// actually do; update UPDATED whenever the substance changes.
+const UPDATED = 'November 23, 2026';
+const CONTACT = <a href="mailto:hello@theartexch.com">hello@theartexch.com</a>;
+
 export default function Privacy() {
   return (
     <article className="prose">
-          <h1 className="mb-4">Privacy Policy</h1>
-          <p className="muted">
-            <strong>Last Updated:</strong> {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-          </p>
+      <h1>Privacy Policy</h1>
+      <p className="muted"><strong>Last updated:</strong> {UPDATED}</p>
 
-          <section className="mb-5">
-            <h2 className="h4 mb-3">1. Introduction</h2>
-            <p>
-              Welcome to The Art Exchange ("we," "us," or "our"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
-            </p>
-            <p>
-              If you have any questions or concerns about this policy or our practices with regard to your personal information, please contact us at{' '}
-              <a href="mailto:hello@theartexch.com">hello@theartexch.com</a>.
-            </p>
-          </section>
+      <p>
+        The Art Exchange (&ldquo;we&rdquo;, &ldquo;us&rdquo;) is a catalog of concert posters and a place for collectors to
+        track their collections and buy, sell and trade with each other. This policy says what we collect, what we do with it
+        and what you can do about it. Questions: {CONTACT}.
+      </p>
 
-          <section className="mb-5">
-            <h2 className="h4 mb-3">2. Information We Collect</h2>
+      <section>
+        <h2>1. What we collect</h2>
+        <h3>When you browse</h3>
+        <p>
+          You can browse the archive without an account. Like most websites, our servers and our hosting provider keep
+          request logs (IP address, browser, the page asked for and the time) for security and troubleshooting. We don&apos;t
+          use advertising or analytics trackers.
+        </p>
+        <h3>When you have an account</h3>
+        <ul>
+          <li><strong>Your email address.</strong> We sign you in by emailing a one-time code; there is no password.</li>
+          <li><strong>Your profile:</strong> a handle (we generate one, and you can change it), and optionally your name and city.</li>
+          <li><strong>Your wall:</strong> the posters you own, want or have for sale, with any edition, condition, price, notes and photos you add, and the shows you&apos;ve been to.</li>
+          <li><strong>Messages</strong> you send other collectors about a copy for sale, and the trades you record and confirm.</li>
+          <li><strong>Recordings</strong> you upload, and the descriptions that come with them.</li>
+        </ul>
+      </section>
 
-            <h3 className="h5 mb-3">2.1 Personal Information You Provide</h3>
-            <p>We collect personal information that you voluntarily provide to us when you:</p>
-            <ul>
-              <li>Register for an account (email address, username, password)</li>
-              <li>Create or update your profile (name, bio, location, collector information)</li>
-              <li>Add posters to your collection (poster details, condition notes, edition information)</li>
-              <li>Contact us for support or inquiries</li>
-            </ul>
+      <section>
+        <h2>2. What other people can see</h2>
+        <ul>
+          <li>Your <strong>hunt list</strong> and <strong>for-sale list</strong> are private until you make them public in Settings. A public list appears on your collector page (<code>theartexch.com/c/your-handle</code>) under your handle, and copies on a public for-sale list appear on that poster&apos;s page.</li>
+          <li>The rest of your wall, your email address, your notes and what you paid are never shown to anyone else.</li>
+          <li>A <strong>conversation</strong> about a copy is visible only to the buyer and the seller. Neither sees the other&apos;s email address. If one of you reports a conversation, we read it to deal with the report.</li>
+          <li>The price of a <strong>confirmed trade</strong> can appear in that poster&apos;s price history, with no names attached.</li>
+        </ul>
+      </section>
 
-            <h3 className="h5 mb-3 mt-4">2.2 Automatically Collected Information</h3>
-            <p>When you visit our website, we automatically collect certain information about your device and usage, including:</p>
-            <ul>
-              <li>Log data (IP address, browser type, operating system)</li>
-              <li>Usage data (pages visited, time spent, features used)</li>
-              <li>Device information (device type, screen resolution)</li>
-              <li>Cookies and similar tracking technologies</li>
-            </ul>
+      <section>
+        <h2>3. How we use it</h2>
+        <ul>
+          <li>To run the service: sign you in, keep your wall, show your public lists and deliver messages.</li>
+          <li>To email you: sign-in codes, a note when someone messages you (it doesn&apos;t include the message), and notes about trades you&apos;re part of. We don&apos;t send marketing email.</li>
+          <li>To keep the service safe: rate limits, investigating reports, and stopping abuse and fraud.</li>
+          <li>To build the archive: poster images in the catalog and the descriptions of uploaded recordings may be processed by an AI model (Anthropic&apos;s Claude, through Amazon Bedrock) to fill in details such as the band, venue and setlist. Your email address and private wall aren&apos;t sent.</li>
+        </ul>
+        <p>We don&apos;t sell your personal information or share it for advertising.</p>
+      </section>
 
-            <h3 className="h5 mb-3 mt-4">2.3 Image Data</h3>
-            <p>
-              When you upload images of posters to your collection, we store these images on cloud storage services (AWS S3).
-              We may use AI services (Anthropic Claude API) to analyze poster images for metadata extraction, categorization,
-              and enhanced search functionality.
-            </p>
-          </section>
+      <section>
+        <h2>4. Who processes it for us</h2>
+        <p>
+          Everything is hosted on Amazon Web Services in the United States: our servers and database, photo and file storage,
+          email delivery (Amazon SES) and the AI model above (Amazon Bedrock). Beyond these, we disclose information only if
+          the law requires it, or to protect people from fraud or harm.
+        </p>
+      </section>
 
-          <section className="mb-5">
-            <h2 className="h4 mb-3">3. How We Use Your Information</h2>
-            <p>We use the information we collect to:</p>
-            <ul>
-              <li>Provide, maintain, and improve our services</li>
-              <li>Create and manage your account</li>
-              <li>Enable you to catalog and track your poster collection</li>
-              <li>Analyze usage patterns and improve user experience</li>
-              <li>Send you administrative messages, updates, and security alerts</li>
-              <li>Respond to your comments, questions, and customer service requests</li>
-              <li>Detect, prevent, and address technical issues and security threats</li>
-              <li>Comply with legal obligations</li>
-            </ul>
-          </section>
+      <section>
+        <h2>5. Cookies and storage in your browser</h2>
+        <p>
+          We don&apos;t set tracking cookies. When you sign in, your browser stores a sign-in token on your device so you stay
+          signed in; signing out removes it.
+        </p>
+      </section>
 
-          <section className="mb-5">
-            <h2 className="h4 mb-3">4. Information Sharing and Disclosure</h2>
+      <section>
+        <h2>6. Deleting your account</h2>
+        <p>
+          You can delete your account from Settings at any time. We ask for a fresh code from your email first. Deleting it
+          removes your profile, your wall and its photos, your shows and your sign-in straight away. What other people rely
+          on stays, without your name: conversations you were in remain with the other person, with your messages blanked;
+          confirmed trades stay, anonymized, in price history. Database backups kept for recovery are deleted after 7 days.
+        </p>
+      </section>
 
-            <h3 className="h5 mb-3">4.1 Third-Party Service Providers</h3>
-            <p>We share your information with third-party service providers who perform services on our behalf, including:</p>
-            <ul>
-              <li><strong>Cloud Storage:</strong> AWS S3 for storing images and data</li>
-              <li><strong>Analytics:</strong> Google Analytics or similar services for usage analytics</li>
-              <li><strong>Email Services:</strong> Email service providers for sending notifications and communications</li>
-              <li><strong>AI Services:</strong> Anthropic Claude API for image analysis and metadata extraction</li>
-            </ul>
+      <section>
+        <h2>7. Your rights</h2>
+        <p>
+          Depending on where you live, you may have the right to see the personal information we hold about you, correct it,
+          get a copy of it, or have it deleted. Most of it you can see and change yourself in the app. For anything else, email{' '}
+          {CONTACT} and we&apos;ll answer within 30 days. If you&apos;re in California, the same applies under the CCPA, and we
+          don&apos;t sell personal information.
+        </p>
+      </section>
 
-            <h3 className="h5 mb-3 mt-4">4.2 Legal Requirements</h3>
-            <p>We may disclose your information if required to do so by law or in response to valid requests by public authorities.</p>
+      <section>
+        <h2>8. Children</h2>
+        <p>
+          The Art Exchange isn&apos;t meant for children under 13, and we don&apos;t knowingly collect their information. If you
+          think a child has made an account, email {CONTACT} and we&apos;ll delete it.
+        </p>
+      </section>
 
-            <h3 className="h5 mb-3 mt-4">4.3 Business Transfers</h3>
-            <p>
-              In the event of a merger, acquisition, or sale of assets, your information may be transferred.
-              We will provide notice before your information is transferred and becomes subject to a different privacy policy.
-            </p>
+      <section>
+        <h2>9. Security</h2>
+        <p>
+          Data is encrypted in transit and at rest, access is limited to the people who run the service, and sign-in codes are
+          single-use and short-lived. No system is perfectly secure, so we can&apos;t promise nothing will ever go wrong, but if
+          a breach affects your information we&apos;ll tell you.
+        </p>
+      </section>
 
-            <h3 className="h5 mb-3 mt-4">4.4 With Your Consent</h3>
-            <p>We may share your information for any other purpose with your consent.</p>
-          </section>
-
-          <section className="mb-5">
-            <h2 className="h4 mb-3">5. Data Security</h2>
-            <p>
-              We implement appropriate technical and organizational security measures to protect your personal information.
-              However, no method of transmission over the internet or electronic storage is 100% secure. While we strive to
-              use commercially acceptable means to protect your information, we cannot guarantee absolute security.
-            </p>
-          </section>
-
-          <section className="mb-5">
-            <h2 className="h4 mb-3">6. Your Privacy Rights</h2>
-            <p>Depending on your location, you may have the following rights:</p>
-            <ul>
-              <li><strong>Access:</strong> Request access to your personal information</li>
-              <li><strong>Correction:</strong> Request correction of inaccurate information</li>
-              <li><strong>Deletion:</strong> Request deletion of your personal information</li>
-              <li><strong>Data Portability:</strong> Request a copy of your data in a structured format</li>
-              <li><strong>Opt-Out:</strong> Opt out of marketing communications</li>
-              <li><strong>Withdrawal of Consent:</strong> Withdraw consent where we rely on consent for processing</li>
-            </ul>
-            <p>
-              To exercise these rights, please contact us at{' '}
-              <a href="mailto:hello@theartexch.com">hello@theartexch.com</a>.
-            </p>
-          </section>
-
-          <section className="mb-5">
-            <h2 className="h4 mb-3">7. Cookies and Tracking Technologies</h2>
-            <p>
-              We use cookies and similar tracking technologies to track activity on our service and store certain information.
-              You can instruct your browser to refuse all cookies or to indicate when a cookie is being sent. However, if you
-              do not accept cookies, you may not be able to use some portions of our service.
-            </p>
-          </section>
-
-          <section className="mb-5">
-            <h2 className="h4 mb-3">8. Third-Party Links</h2>
-            <p>
-              Our service may contain links to third-party websites. We are not responsible for the privacy practices of these
-              external sites. We encourage you to review the privacy policies of any third-party sites you visit.
-            </p>
-          </section>
-
-          <section className="mb-5">
-            <h2 className="h4 mb-3">9. Children's Privacy</h2>
-            <p>
-              While our service does not have a specific age restriction, we do not knowingly collect personal information from
-              children under 13 without parental consent. If you are a parent or guardian and believe your child has provided
-              us with personal information, please contact us so we can take appropriate action.
-            </p>
-          </section>
-
-          <section className="mb-5">
-            <h2 className="h4 mb-3">10. International Data Transfers</h2>
-            <p>
-              Your information may be transferred to and maintained on computers located outside of your state, province,
-              country, or other governmental jurisdiction where data protection laws may differ. By using our service, you
-              consent to the transfer of your information to the United States and other locations as necessary to provide
-              our services.
-            </p>
-          </section>
-
-          <section className="mb-5">
-            <h2 className="h4 mb-3">11. Data Retention</h2>
-            <p>
-              We retain your personal information only for as long as necessary to fulfill the purposes outlined in this
-              Privacy Policy, unless a longer retention period is required or permitted by law. When you delete your account,
-              we will delete or anonymize your information within a reasonable timeframe.
-            </p>
-          </section>
-
-          <section className="mb-5">
-            <h2 className="h4 mb-3">12. Changes to This Privacy Policy</h2>
-            <p>
-              We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new
-              Privacy Policy on this page and updating the "Last Updated" date. You are advised to review this Privacy
-              Policy periodically for any changes.
-            </p>
-          </section>
-
-          <section className="mb-5">
-            <h2 className="h4 mb-3">13. California Privacy Rights</h2>
-            <p>
-              If you are a California resident, you have specific rights under the California Consumer Privacy Act (CCPA),
-              including the right to request disclosure of information we collect, the right to request deletion of your
-              information, and the right to opt-out of the sale of personal information. We do not sell your personal
-              information.
-            </p>
-          </section>
-
-          <section className="mb-5">
-            <h2 className="h4 mb-3">14. Contact Us</h2>
-            <p>
-              If you have any questions about this Privacy Policy, please contact us:
-            </p>
-            <ul className="list-unstyled">
-              <li>Email: <a href="mailto:hello@theartexch.com">hello@theartexch.com</a></li>
-            </ul>
-          </section>
+      <section>
+        <h2>10. Changes</h2>
+        <p>
+          If we change this policy, we&apos;ll update the date at the top. If a change affects how your information is shared,
+          we&apos;ll tell you by email before it takes effect.
+        </p>
+      </section>
     </article>
   );
 }

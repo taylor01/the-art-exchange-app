@@ -162,3 +162,14 @@ export async function getCollectorList(handle, list, page = 1) {
     meta: data.meta || {},
   };
 }
+
+// Deleting an account takes a fresh sign-in code (API #88), so a stolen
+// session alone can't delete it. POST /auth/code emails one.
+export async function requestAccountCode(email) {
+  await client.post('/auth/code', { email });
+}
+
+// DELETE /users/account { code } -> 204. A wrong code is a 422 with a detail.
+export async function deleteAccount(code) {
+  await client.delete('/users/account', { data: { code } });
+}

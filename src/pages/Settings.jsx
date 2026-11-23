@@ -3,6 +3,7 @@ import { getProfile } from '../api/collection';
 import { useApi } from '../hooks/useApi';
 import { useAuthStore } from '../store/authStore';
 import ProfileForm from '../components/ProfileForm';
+import DeleteAccount from '../components/DeleteAccount';
 import { ErrorNote, Loading } from '../components/Feedback';
 import { collectorPath } from '../lib/handles';
 
@@ -33,6 +34,7 @@ export default function Settings() {
           }}
         />
       )}
+      {p && <DeleteAccount email={p.email} />}
     </div>
   );
 }

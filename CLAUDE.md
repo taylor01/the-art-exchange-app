@@ -13,7 +13,8 @@ Terraform Cloud org is `taylor01`, never `hendrick`.
 - Default branch `main`; work on feature branches and merge through PRs.
 - Merging does not deploy; a `vX.Y.Z` tag does. Every release has a dated `CHANGELOG.md` entry.
 - Before opening a PR: `npm run lint`, `npm audit --audit-level=high`, `npm run test:run`, `npm run build`.
-- Accounts (sign in, sign up, collections) are behind `VITE_ENABLE_ACCOUNTS`, off in production.
+- Accounts (sign in, sign up, walls, Messages, Settings) are behind `VITE_ENABLE_ACCOUNTS`, on in production
+  from app v0.5.0 (`deploy.yml`).
   Tests that cover them mock `src/config/features` to turn them on; `PublicMode.test.jsx`
   covers the default.
 

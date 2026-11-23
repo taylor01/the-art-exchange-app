@@ -80,7 +80,7 @@ jobs:
       - name: Build
         env:
           VITE_API_URL: ${{ vars.API_URL }}
-          VITE_ENABLE_ACCOUNTS: 'false'
+          VITE_ENABLE_ACCOUNTS: 'true'
         run: npm run build
 
       - name: Configure AWS credentials

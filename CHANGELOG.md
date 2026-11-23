@@ -6,6 +6,23 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Delete your account** at the bottom of Settings: says what is deleted and what stays
+  with other people, emails a fresh code, and deletes only when you enter it and press
+  the button (`DELETE /users/account`, API #88). You're signed out afterwards.
+
+### Changed
+
+- **Accounts are on in production.** `deploy.yml` builds with `VITE_ENABLE_ACCOUNTS: 'true'`,
+  so sign-in, walls, Messages and Settings are live. Needs API v0.5.0 (#88, #91) deployed first.
+- Privacy policy rewritten to match how the service works: email codes instead of
+  passwords, what's public and what isn't, messages and reports, AI processing through
+  Amazon Bedrock, no tracking cookies or analytics, and what account deletion removes.
+  Terms: buying, selling and trading replace the "future e-commerce" section, and the
+  rule against commercial use is gone. Both show a fixed "last updated" date instead of
+  today's.
+
 ## [0.4.0] - 2026-11-23
 
 ### Added
