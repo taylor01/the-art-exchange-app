@@ -68,6 +68,7 @@ describe('PosterDetail', () => {
     renderPoster();
     fireEvent.click(await screen.findByRole('button', { name: /put it on my wall/i }));
     await waitFor(() => expect(client.post).toHaveBeenCalledWith('/user_posters', { user_poster: { poster_id: '123', status: 'owned' } }));
+    expect(client.get).toHaveBeenCalledWith('/user_posters', { params: { per_page: 200, poster_id: '123' } });
   });
 
   it('shows the collector\'s copy when it is already on their wall', async () => {
