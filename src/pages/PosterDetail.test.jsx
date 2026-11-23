@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom';
 import PosterDetail from './PosterDetail';
 import client from '../api/client';
 import { useAuthStore } from '../store/authStore';
-import { posterDoc, recordingsDoc, searchDoc, setlistDoc, showDoc } from '../test/fixtures';
+import { historyDoc, listingsDoc, posterDoc, recordingsDoc, searchDoc, setlistDoc, showDoc } from '../test/fixtures';
 
 vi.mock('../api/client');
 vi.mock('../config/features', () => ({ accountsEnabled: true }));
@@ -13,6 +13,8 @@ vi.mock('../store/authStore', () => ({ useAuthStore: vi.fn() }));
 function routeGets({ copies = [] } = {}) {
   client.get.mockImplementation((url) => {
     if (url.startsWith('/posters/search')) return Promise.resolve({ data: searchDoc() });
+    if (url.endsWith('/listings')) return Promise.resolve({ data: listingsDoc });
+    if (url.endsWith('/price_history')) return Promise.resolve({ data: historyDoc });
     if (url.startsWith('/posters/')) return Promise.resolve({ data: posterDoc });
     if (url.endsWith('/setlist_songs')) return Promise.resolve({ data: setlistDoc });
     if (url.endsWith('/recordings')) return Promise.resolve({ data: recordingsDoc });
@@ -23,12 +25,18 @@ function routeGets({ copies = [] } = {}) {
   });
 }
 
+function MessagesStub() {
+  const { id } = useParams();
+  return <p>Conversation {id}</p>;
+}
+
 function renderPoster() {
   return render(
     <MemoryRouter initialEntries={['/poster/moth-parade-red-rocks-2022']}>
       <Routes>
         <Route path="/poster/:id" element={<PosterDetail />} />
         <Route path="/signin" element={<p>Sign in page</p>} />
+        <Route path="/messages/:id" element={<MessagesStub />} />
       </Routes>
     </MemoryRouter>
   );
@@ -79,6 +87,29 @@ describe('PosterDetail', () => {
     renderPoster();
     expect(await screen.findByText('On your wall')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /manage your copy/i })).toHaveAttribute('href', '/wall/77');
+  });
+
+  it('shows price history and copies for sale', async () => {
+    renderPoster();
+    expect(await screen.findByText('Last sale')).toBeInTheDocument();
+    expect(screen.getAllByText('$185').length).toBeGreaterThan(0);
+    expect(screen.getByText('4.6×')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '@gorgeous_g' })).toHaveAttribute('href', '/c/gorgeous_g');
+  });
+
+  it('opens a conversation with the seller from a copy for sale', async () => {
+    useAuthStore.mockReturnValue({ user: { id: 1, handle: 'robin' } });
+    client.post.mockResolvedValue({ data: { data: { id: '5', type: 'conversation', attributes: { status: 'open', role: 'buyer' } } } });
+    renderPoster();
+    fireEvent.click(await screen.findByRole('button', { name: 'Message @gorgeous_g' }));
+    await waitFor(() => expect(client.post).toHaveBeenCalledWith('/user_posters/91/conversations', { conversation: { message: null, offer_dollars: null } }));
+    expect(await screen.findByText('Conversation 5')).toBeInTheDocument();
+  });
+
+  it('sends a signed-out visitor to sign in before messaging', async () => {
+    useAuthStore.mockReturnValue({ user: null });
+    renderPoster();
+    expect(await screen.findByRole('link', { name: 'Message @gorgeous_g' })).toHaveAttribute('href', '/signin');
   });
 
   it('says when a poster does not exist', async () => {

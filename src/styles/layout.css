@@ -151,3 +151,68 @@ button { font: inherit; }
 /* Utility */
 .stack { display: flex; flex-direction: column; gap: var(--space-4); }
 .cluster { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+
+/* Prices: summary numbers, sales chart, listings */
+.price-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-4); }
+.price-stat { border: var(--border-heavy) solid var(--ink); background: var(--card); padding: var(--space-4) 18px; }
+.price-stat--lead { background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow-md); }
+.price-stat__v { font-family: var(--font-display); font-size: 40px; line-height: 1.05; margin-top: 6px; overflow-wrap: anywhere; }
+.price-chart { padding: var(--space-5) var(--space-5) var(--space-4); display: flex; flex-direction: column; gap: var(--space-4); }
+.price-chart__plot { display: flex; height: 240px; }
+.price-chart__axis { display: flex; flex-direction: column; justify-content: space-between; padding: 0 10px 26px 0; width: 52px; text-align: right; font-family: var(--font-mono); font-size: 11px; color: var(--ink-muted); }
+.price-chart__bars { flex: 1; display: flex; align-items: flex-end; gap: 8px; border-left: var(--border-heavy) solid var(--ink); border-bottom: var(--border-heavy) solid var(--ink); padding: 0 8px; margin-bottom: 26px; min-width: 0; }
+.price-chart__col { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative; }
+.price-chart__value { font-family: var(--font-mono); font-size: 10px; font-weight: 700; margin-bottom: 4px; white-space: nowrap; }
+.price-chart__bar { display: block; width: 100%; max-width: 44px; background: var(--accent); border: var(--border-heavy) solid var(--ink); box-sizing: border-box; min-height: 4px; }
+.price-chart__bar--release { background: var(--ink); }
+.price-chart__date { position: absolute; bottom: -24px; font-family: var(--font-mono); font-size: 10px; text-transform: uppercase; color: var(--ink-muted); white-space: nowrap; }
+.price-chart__key { width: 12px; height: 12px; background: var(--accent); border: var(--border-light) solid var(--ink); display: inline-block; }
+.price-chart__key--release { background: var(--ink); }
+@media (max-width: 520px) { .price-chart__value { display: none; } }
+.listing-list { list-style: none; margin: 0; padding: 0; }
+.listing-list li { padding: 14px 18px; border-bottom: var(--border-light) solid var(--ink); }
+
+/* Messages (API #91): conversation list beside the open thread. */
+.nav-badge { display: inline-block; margin-left: 6px; min-width: 18px; padding: 0 5px; border: var(--border-light) solid var(--ink); background: var(--accent); color: var(--on-accent); font-family: var(--font-mono); font-size: 12px; line-height: 18px; text-align: center; vertical-align: 1px; }
+.messages { display: flex; border: var(--border-heavy) solid var(--ink); background: var(--card); box-shadow: var(--shadow-lg); height: min(720px, calc(100vh - 220px)); min-height: 480px; }
+.messages__list { width: 360px; flex: none; border-right: var(--border-heavy) solid var(--ink); display: flex; flex-direction: column; min-height: 0; }
+.messages__list .tax-tabs { border-width: 0 0 var(--border-heavy) 0; }
+.messages__items { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
+.convo-item { display: flex; gap: var(--space-3); align-items: flex-start; padding: var(--space-3) var(--space-4); border-bottom: var(--border-light) solid var(--ink); border-left: 6px solid transparent; color: var(--ink); text-decoration: none; }
+.convo-item[aria-current="page"] { border-left-color: var(--accent); background: var(--paper); }
+.convo-item__main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.convo-item__line { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.convo-item--unread .convo-item__preview { font-weight: 700; }
+.convo-item__dot { width: 12px; height: 12px; flex: none; align-self: center; background: var(--accent); border: var(--border-light) solid var(--ink); }
+.thumb { width: 48px; flex: none; display: block; border: var(--border-light) solid var(--ink); }
+.messages__thread { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+.thread__head { padding: var(--space-3) var(--space-5); border-bottom: var(--border-heavy) solid var(--ink); display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
+.thread__who { flex: 1; min-width: 200px; }
+.thread__panel { padding: var(--space-4) var(--space-5); border-bottom: var(--border-heavy) solid var(--ink); background: var(--paper); }
+.thread__body { list-style: none; margin: 0; padding: var(--space-5); flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: var(--space-2); background: var(--paper); }
+.msg { display: flex; flex-direction: column; align-items: flex-start; }
+.msg--mine { align-items: flex-end; }
+.msg__bubble { max-width: 72%; padding: 10px 14px; border: var(--border-heavy) solid var(--ink); background: var(--card); font-size: 15px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg--mine .msg__bubble { background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow-sm); }
+.msg__time { font-family: var(--font-mono); font-size: 10px; color: var(--ink-muted); margin-top: 2px; }
+.msg--gone .msg__bubble { background: var(--paper-deep); color: var(--ink-muted); font-style: italic; }
+.thread__note { align-self: center; text-align: center; font-family: var(--font-mono); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-muted); margin: var(--space-2) 0; }
+.deal-card { align-self: center; display: flex; flex-direction: column; align-items: center; gap: var(--space-2); text-align: center; padding: var(--space-4) var(--space-5); margin: var(--space-3) 0; border: var(--border-heavy) solid var(--ink); background: var(--signal-hunt); color: var(--on-accent); box-shadow: var(--shadow-lg); max-width: 440px; width: 100%; box-sizing: border-box; }
+.deal-card--done { background: var(--paper-deep); color: var(--ink); box-shadow: none; }
+.deal-card__price { font-family: var(--font-display); font-size: 40px; line-height: 1; }
+.deal-card .tax-btn--secondary { color: var(--ink); }
+.thread__compose { border-top: var(--border-heavy) solid var(--ink); padding: var(--space-3) var(--space-4); display: flex; gap: var(--space-2); align-items: flex-end; }
+.thread__compose .tax-textarea { flex: 1; min-height: 48px; max-height: 140px; resize: none; }
+.thread__locked { border-top: var(--border-heavy) solid var(--ink); padding: var(--space-4) var(--space-5); background: var(--paper-deep); font-size: 15px; }
+.thread__empty { margin: auto; text-align: center; max-width: 360px; color: var(--ink-muted); }
+@media (max-width: 860px) {
+  .messages { height: auto; min-height: 0; box-shadow: none; }
+  .messages__list { width: 100%; border-right: none; }
+  .messages--thread .messages__list { display: none; }
+  .messages:not(.messages--thread) .messages__thread { display: none; }
+  .messages__thread { min-height: calc(100vh - 200px); }
+  .msg__bubble { max-width: 85%; }
+}
+.thread__more { position: relative; }
+.thread__more > summary { list-style: none; min-height: 44px; padding: 0 var(--space-3); }
+.thread__more > summary::-webkit-details-marker { display: none; }
