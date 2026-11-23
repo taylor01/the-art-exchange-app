@@ -1,66 +1,42 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
-import { updateProfile } from '../../api/collection';
+import { getProfile } from '../../api/collection';
+import { useApi } from '../../hooks/useApi';
+import ProfileForm from '../../components/ProfileForm';
+import { ErrorNote, Loading } from '../../components/Feedback';
 
-// Step 3 for new accounts: a name collectors see, then where to start.
+// Step 3 for new accounts: name, city, handle (a generated one they can keep)
+// and whether their lists are public; then where to start.
 export default function Welcome() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, setUser } = useAuthStore();
-  const [name, setName] = useState(user?.name || '');
-  const [city, setCity] = useState(user?.location || '');
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
   const [step, setStep] = useState(user?.name ? 'start' : 'profile');
   const [query, setQuery] = useState('');
-
-  const saveProfile = async (event) => {
-    event.preventDefault();
-    if (!name.trim()) {
-      setError('Add a name other collectors will see. You can change it any time.');
-      return;
-    }
-    setSaving(true);
-    setError('');
-    try {
-      const attrs = await updateProfile({ name: name.trim(), location: city.trim() || null });
-      setUser({ ...user, name: attrs.name ?? name.trim(), location: attrs.location ?? (city.trim() || null) });
-      setStep('start');
-    } catch {
-      setError("We couldn't save that. Try again.");
-    } finally {
-      setSaving(false);
-    }
-  };
+  const profile = useApi(() => getProfile(), ['profile']);
 
   if (step === 'profile') {
     return (
       <div className="card-page">
-        <form className="card-page__card" onSubmit={saveProfile} noValidate>
+        <div className="card-page__card">
           <p className="eyebrow" style={{ margin: 0 }}>Step 3 of 3</p>
           <h1 className="display-m">Who&apos;s collecting?</h1>
           <p className="body muted" style={{ margin: 0 }}>This is how other collectors see you. Change it any time.</p>
-
-          <div className={`tax-field${error ? ' tax-field--error' : ''}`}>
-            <label className="tax-label" htmlFor="name">Name</label>
-            <input id="name" className="tax-input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" aria-describedby="name-help" autoFocus />
-            <span id="name-help" className="tax-help" role={error ? 'alert' : undefined}>{error || 'Your name or a collector name.'}</span>
-          </div>
-
-          <div className="tax-field">
-            <label className="tax-label" htmlFor="city">Home city (optional)</label>
-            <input id="city" className="tax-input" value={city} onChange={(e) => setCity(e.target.value)} placeholder="City, State" autoComplete="address-level2" aria-describedby="city-help" />
-            <span id="city-help" className="tax-help">Helps match local trades at shows.</span>
-          </div>
-
-          <p className="body-s muted" style={{ margin: 0 }}>Your collection and what you paid stay private.</p>
-
-          <div className="cluster">
-            <button type="submit" className="tax-btn tax-btn--ink tax-btn--lg" disabled={saving}>{saving ? 'Saving…' : 'Continue'}</button>
-            <button type="button" className="tax-btn tax-btn--text" onClick={() => setStep('start')}>Skip for now</button>
-          </div>
-        </form>
+          {profile.loading && <Loading label="Loading your profile" />}
+          {profile.error && <ErrorNote onRetry={profile.reload}>We couldn&apos;t load your profile.</ErrorNote>}
+          {profile.data && (
+            <ProfileForm
+              profile={profile.data}
+              submitLabel="Continue"
+              onSaved={(next) => {
+                setUser({ ...user, name: next.name, location: next.location, handle: next.handle });
+                setStep('start');
+              }}
+              secondary={<button type="button" className="tax-btn tax-btn--text" onClick={() => setStep('start')}>Skip for now</button>}
+            />
+          )}
+        </div>
       </div>
     );
   }

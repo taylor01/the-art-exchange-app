@@ -31,9 +31,9 @@ export default function Layout({ children }) {
           <div className="site-header__account">
             {accountsEnabled && user && (
               <>
-                <span className="tax-initials" title={user.name || user.email} aria-hidden="true">
+                <Link to="/settings" className="tax-initials" title="Settings" aria-label="Settings">
                   {initials(user.name || user.email)}
-                </span>
+                </Link>
                 <button type="button" className="tax-btn tax-btn--text" onClick={handleLogout}>
                   Sign out
                 </button>

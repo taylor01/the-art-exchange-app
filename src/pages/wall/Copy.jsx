@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { deleteCopy, getCopy, updateCopy } from '../../api/collection';
+import { deleteCopy, getCopy, getProfile, updateCopy } from '../../api/collection';
 import { useApi } from '../../hooks/useApi';
 import PosterArt from '../../components/PosterArt';
 import Switch from '../../components/Switch';
@@ -42,6 +42,8 @@ function CopyForm({ copy }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
   const [confirmRemove, setConfirmRemove] = useState(false);
+  const profile = useApi(() => getProfile(), ['profile']);
+  const listPrivate = profile.data && !profile.data.forSalePublic;
 
   const set = (key) => (event) => setForm((f) => ({ ...f, [key]: event.target.value }));
 
@@ -110,6 +112,12 @@ function CopyForm({ copy }) {
               <span><strong>List for sale</strong><br /><span className="body-s muted">Collectors hunting this poster can ask you about it.</span></span>
               <Switch checked={form.forSale} onChange={toggleSale} label="List for sale" disabled={saving} />
             </div>
+            {form.forSale && listPrivate && (
+              <div className="tax-panel__body tax-alert--note" style={{ borderTop: 'var(--border-heavy) solid var(--ink)' }} role="status">
+                Buyers won&apos;t see this until your For sale list is public.{' '}
+                <Link to="/settings" style={{ fontWeight: 700 }}>Make it public</Link>
+              </div>
+            )}
             {form.forSale && (
               <div className="tax-panel__body" style={{ borderTop: 'var(--border-heavy) solid var(--ink)' }}>
                 <div className="tax-field" style={{ maxWidth: 260 }}>
