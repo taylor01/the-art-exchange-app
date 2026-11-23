@@ -2,124 +2,48 @@ import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import PosterCard from './PosterCard';
+import { toPoster } from '../api/catalog';
+import { indexIncluded } from '../api/jsonapi';
+import { posterResource, included } from '../test/fixtures';
 
-const mockPoster = {
-  id: '1',
-  attributes: {
-    title: 'Test Poster',
-    artist_name: 'Test Artist',
-    venue_name: 'Test Venue',
-    band_name: 'Test Band',
-    year: '2024',
-    price: 5000,
-    image_url: 'https://example.com/poster.jpg',
-    grid_thumbnail_url: 'https://example.com/poster-grid.jpg',
-    blur_placeholder_url: 'https://example.com/poster-blur.jpg',
-  },
-};
+const poster = toPoster(posterResource, indexIncluded(included));
+
+function renderCard(props = {}) {
+  return render(
+    <BrowserRouter>
+      <PosterCard poster={poster} {...props} />
+    </BrowserRouter>
+  );
+}
 
 describe('PosterCard', () => {
-  it('renders poster title', () => {
-    render(
-      <BrowserRouter>
-        <PosterCard poster={mockPoster} />
-      </BrowserRouter>
-    );
-    expect(screen.getByText('Test Poster')).toBeInTheDocument();
+  it('shows the band, title, venue and artist', () => {
+    renderCard();
+    expect(screen.getByText('Moth Parade')).toBeInTheDocument();
+    expect(screen.getByText('Night One')).toBeInTheDocument();
+    expect(screen.getByText('Red Rocks, Morrison')).toBeInTheDocument();
+    expect(screen.getByText('Art: Jen Ruiz')).toBeInTheDocument();
   });
 
-  it('renders band name when provided', () => {
-    render(
-      <BrowserRouter>
-        <PosterCard poster={mockPoster} />
-      </BrowserRouter>
-    );
-    expect(screen.getByText('Test Band')).toBeInTheDocument();
+  it('links to the poster page by slug', () => {
+    renderCard();
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/poster/moth-parade-red-rocks-2022');
   });
 
-  it('renders venue name when provided', () => {
-    render(
-      <BrowserRouter>
-        <PosterCard poster={mockPoster} />
-      </BrowserRouter>
-    );
-    expect(screen.getByText('Test Venue')).toBeInTheDocument();
+  it('shows the edition size as a sticker by default', () => {
+    renderCard();
+    expect(screen.getByText('Run of 200')).toBeInTheDocument();
   });
 
-  it('renders year', () => {
-    render(
-      <BrowserRouter>
-        <PosterCard poster={mockPoster} />
-      </BrowserRouter>
-    );
-    expect(screen.getByText('2024')).toBeInTheDocument();
+  it('uses a given sticker and link', () => {
+    renderCard({ sticker: 'For sale', to: '/wall/9' });
+    expect(screen.getByText('For sale')).toBeInTheDocument();
+    expect(screen.getByRole('link')).toHaveAttribute('href', '/wall/9');
   });
 
-  it('renders formatted price', () => {
-    render(
-      <BrowserRouter>
-        <PosterCard poster={mockPoster} />
-      </BrowserRouter>
-    );
-    expect(screen.getByText('$50.00')).toBeInTheDocument();
-  });
-
-  it('renders image with correct src', () => {
-    render(
-      <BrowserRouter>
-        <PosterCard poster={mockPoster} />
-      </BrowserRouter>
-    );
-    const image = screen.getByAltText('Test Poster');
-    // Should use grid thumbnail by default
-    expect(image).toHaveAttribute('src', 'https://example.com/poster-grid.jpg');
-  });
-
-  it('links to poster detail page', () => {
-    render(
-      <BrowserRouter>
-        <PosterCard poster={mockPoster} />
-      </BrowserRouter>
-    );
-    const link = screen.getByRole('link');
-    expect(link).toHaveAttribute('href', '/poster/1');
-  });
-
-  it('uses grid thumbnail for main image when available', () => {
-    render(
-      <BrowserRouter>
-        <PosterCard poster={mockPoster} />
-      </BrowserRouter>
-    );
-    const image = screen.getByAltText('Test Poster');
-    expect(image).toHaveAttribute('src', 'https://example.com/poster-grid.jpg');
-  });
-
-  it('renders blur placeholder for progressive loading', () => {
-    const { container } = render(
-      <BrowserRouter>
-        <PosterCard poster={mockPoster} />
-      </BrowserRouter>
-    );
-    const blurImage = container.querySelector('img[src="https://example.com/poster-blur.jpg"]');
-    expect(blurImage).toBeInTheDocument();
-    expect(blurImage).toHaveStyle({ filter: 'blur(10px)' });
-  });
-
-  it('falls back to image_url when grid_thumbnail_url is not available', () => {
-    const posterWithoutThumbnail = {
-      ...mockPoster,
-      attributes: {
-        ...mockPoster.attributes,
-        grid_thumbnail_url: null,
-      },
-    };
-    render(
-      <BrowserRouter>
-        <PosterCard poster={posterWithoutThumbnail} />
-      </BrowserRouter>
-    );
-    const image = screen.getByAltText('Test Poster');
-    expect(image).toHaveAttribute('src', 'https://example.com/poster.jpg');
+  it('uses the grid thumbnail with descriptive alt text', () => {
+    renderCard();
+    const img = screen.getByAltText('Moth Parade poster Red Rocks 2022');
+    expect(img).toHaveAttribute('src', 'https://example.com/poster-grid.jpg');
   });
 });

@@ -6,6 +6,28 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- New "Print Shop" look from the Art Exchange design system: cream paper, black 3px
+  outlines, hard offset shadows, one pink accent, Anton / Space Grotesk / Space Mono.
+  Styles are plain CSS in `src/styles/` (tokens, components, layout); Bootstrap is gone.
+- The logo's sign is now the accent pink with "ART" in dark type.
+- Home, archive (search plus one filter per facet, all in the URL, paged) and poster pages
+  rebuilt. The poster page adds print details, other posters from the same show, the
+  setlist, recordings, the venue and the artist, with an empty price-history section until
+  trades exist.
+- Sign-in and joining use emailed 6-digit codes (`POST /auth/code`, `POST /auth/verify`)
+  instead of passwords; new accounts get a short name and city step.
+- Collections are now My Wall (`/wall`): posters on the wall, listed for sale and hunted,
+  shows attended, and a page per copy for edition, condition, price paid, notes and
+  listing it for sale. Adding to the wall sends the body the API expects
+  (`{ user_poster: … }`).
+
+### Removed
+
+- Bootstrap and its Popper dependency; the old Login and Signup pages (`/login`, `/signup`
+  and `/collection` redirect to the new routes).
+
 ## [0.1.0] - 2026-11-22
 
 The first release on AWS: public browsing of the poster catalog at https://theartexch.com.

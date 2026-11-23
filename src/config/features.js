@@ -1,6 +1,6 @@
 // Build-time feature switches (Vite env, fixed when the site is built).
 
-// Accounts (sign in, sign up, collections) stay off until the API supports
-// sign-in for imported users (emailed one-time codes). The pages and store
-// remain in the code; this only hides the routes, links and buttons.
+// Accounts (sign in, joining, My Wall). The API now signs people in with
+// emailed one-time codes; turn this on at build time once it's ready for
+// real users. Off hides the routes, links and buttons; the code stays.
 export const accountsEnabled = import.meta.env.VITE_ENABLE_ACCOUNTS === 'true';

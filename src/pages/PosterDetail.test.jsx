@@ -1,336 +1,88 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import PosterDetail from './PosterDetail';
 import client from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { posterDoc, recordingsDoc, searchDoc, setlistDoc, showDoc } from '../test/fixtures';
 
-// Mock the API client
 vi.mock('../api/client');
-
-// These tests cover the account features, which are off by default.
 vi.mock('../config/features', () => ({ accountsEnabled: true }));
+vi.mock('../store/authStore', () => ({ useAuthStore: vi.fn() }));
 
-// Mock the auth store
-vi.mock('../store/authStore', () => ({
-  useAuthStore: vi.fn(),
-}));
+function routeGets({ copies = [] } = {}) {
+  client.get.mockImplementation((url) => {
+    if (url.startsWith('/posters/search')) return Promise.resolve({ data: searchDoc() });
+    if (url.startsWith('/posters/')) return Promise.resolve({ data: posterDoc });
+    if (url.endsWith('/setlist_songs')) return Promise.resolve({ data: setlistDoc });
+    if (url.endsWith('/recordings')) return Promise.resolve({ data: recordingsDoc });
+    if (url.endsWith('/bookmark')) return Promise.reject({ response: { status: 404 } });
+    if (url.startsWith('/shows/')) return Promise.resolve({ data: showDoc });
+    if (url === '/user_posters') return Promise.resolve({ data: { data: copies, included: [posterDoc.data] } });
+    return Promise.reject(new Error(`unexpected ${url}`));
+  });
+}
 
-const mockPosterResponse = {
-  data: {
-    data: {
-      id: '123',
-      type: 'poster',
-      attributes: {
-        title: 'Test Poster',
-        artist_name: 'Test Artist',
-        venue_name: 'Test Venue',
-        band_name: 'Test Band',
-        year: 2024,
-        price: 5000,
-        image_url: 'https://example.com/poster.jpg',
-        description: 'A great poster',
-        in_user_collection: false,
-      },
-    },
-  },
-};
+function renderPoster() {
+  return render(
+    <MemoryRouter initialEntries={['/poster/moth-parade-red-rocks-2022']}>
+      <Routes>
+        <Route path="/poster/:id" element={<PosterDetail />} />
+        <Route path="/signin" element={<p>Sign in page</p>} />
+      </Routes>
+    </MemoryRouter>
+  );
+}
 
 describe('PosterDetail', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    client.get.mockResolvedValue(mockPosterResponse);
-    useAuthStore.mockReturnValue({
-      user: null,
-    });
+    useAuthStore.mockReturnValue({ user: null });
+    routeGets();
   });
 
-  describe('Basic Rendering', () => {
-    it('renders poster details', async () => {
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText('Test Poster')).toBeInTheDocument();
-        expect(screen.getByText(/Artist:/)).toBeInTheDocument();
-        expect(screen.getByText('Test Artist')).toBeInTheDocument();
-        expect(screen.getByText(/Venue:/)).toBeInTheDocument();
-        expect(screen.getByText('Test Venue')).toBeInTheDocument();
-        expect(screen.getByText(/Year:/)).toBeInTheDocument();
-        expect(screen.getByText('2024')).toBeInTheDocument();
-      });
-    });
-
-    it('fetches poster data on mount', async () => {
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(client.get).toHaveBeenCalledWith('/posters/123');
-      });
-    });
-
-    it('displays loading state initially', () => {
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      expect(screen.getByText(/loading/i)).toBeInTheDocument();
-    });
-
-    it('displays poster image', async () => {
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        const image = screen.getByAltText('Test Poster');
-        expect(image).toHaveAttribute('src', 'https://example.com/poster.jpg');
-      });
-    });
-
-    it('displays formatted price', async () => {
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText('$50.00')).toBeInTheDocument();
-      });
-    });
-
-    it('displays description', async () => {
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText('A great poster')).toBeInTheDocument();
-      });
-    });
+  it('shows the poster, its print details and the setlist', async () => {
+    renderPoster();
+    expect(await screen.findByRole('heading', { level: 1, name: 'Moth Parade' })).toBeInTheDocument();
+    expect(screen.getByText('Jen Ruiz', { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.getByText('$40', { selector: 'dd' })).toBeInTheDocument();
+    expect(await screen.findByText('Lantern Season')).toBeInTheDocument();
+    expect(screen.getByText('E1')).toBeInTheDocument();
+    expect(client.get).toHaveBeenCalledWith('/posters/moth-parade-red-rocks-2022', expect.objectContaining({ params: { include: 'band,venue,show,artists,series' } }));
   });
 
-  describe('Back Button Navigation', () => {
-    it('renders back to gallery button', async () => {
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText(/← back to gallery/i)).toBeInTheDocument();
-      });
-    });
-
-    it('navigates to default gallery when no state provided', async () => {
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText('Test Poster')).toBeInTheDocument();
-      });
-
-      const backButton = screen.getByText(/← back to gallery/i);
-      fireEvent.click(backButton);
-
-      // Note: In a real test, you'd verify navigation occurred
-      // This would require mocking useNavigate or checking the router state
-    });
-
-    it('preserves gallery filter URL when navigating back', async () => {
-      const filterPath = '/gallery?artist=1&band=2&year=2024';
-
-      render(
-        <MemoryRouter initialEntries={[
-          filterPath,
-          { pathname: '/poster/123', state: { from: filterPath } }
-        ]} initialIndex={1}>
-          <Routes>
-            <Route path="/gallery" element={<div>Gallery</div>} />
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText('Test Poster')).toBeInTheDocument();
-      });
-
-      // The component should have access to location.state.from
-      // In a full integration test, clicking back would navigate to the filtered gallery
-    });
+  it('shows the venue section', async () => {
+    renderPoster();
+    expect(await screen.findByRole('heading', { level: 2, name: 'Red Rocks' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /every poster from here/i })).toHaveAttribute('href', '/gallery?venue=9');
   });
 
-  describe('Collection Management', () => {
-    it('shows sign in prompt for unauthenticated users', async () => {
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText(/sign in to add to collection/i)).toBeInTheDocument();
-      });
-    });
-
-    it('shows add to collection button for authenticated users', async () => {
-      useAuthStore.mockReturnValue({
-        user: { id: 1, email: 'test@example.com' },
-      });
-
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText(/add to collection/i)).toBeInTheDocument();
-      });
-    });
-
-    it('shows remove from collection when poster is in collection', async () => {
-      useAuthStore.mockReturnValue({
-        user: { id: 1, email: 'test@example.com' },
-      });
-
-      const posterInCollection = {
-        data: {
-          data: {
-            ...mockPosterResponse.data.data,
-            attributes: {
-              ...mockPosterResponse.data.data.attributes,
-              in_user_collection: true,
-            },
-          },
-        },
-      };
-
-      client.get.mockResolvedValue(posterInCollection);
-
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText(/remove from collection/i)).toBeInTheDocument();
-      });
-    });
-
-    it('adds poster to collection when button clicked', async () => {
-      useAuthStore.mockReturnValue({
-        user: { id: 1, email: 'test@example.com' },
-      });
-
-      client.post.mockResolvedValue({ data: { success: true } });
-
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText(/add to collection/i)).toBeInTheDocument();
-      });
-
-      const addButton = screen.getByText(/add to collection/i);
-      fireEvent.click(addButton);
-
-      await waitFor(() => {
-        expect(client.post).toHaveBeenCalledWith(
-          '/user_posters',
-          expect.objectContaining({
-            data: expect.objectContaining({
-              type: 'user_posters',
-              attributes: expect.objectContaining({
-                poster_id: '123',
-              }),
-            }),
-          })
-        );
-      });
-    });
+  it('sends signed-out visitors to sign in when they add it to their wall', async () => {
+    renderPoster();
+    fireEvent.click(await screen.findByRole('button', { name: /put it on my wall/i }));
+    expect(await screen.findByText('Sign in page')).toBeInTheDocument();
   });
 
-  describe('Error Handling', () => {
-    it('displays error message when fetch fails', async () => {
-      client.get.mockRejectedValue(new Error('Network error'));
+  it('adds it to a signed-in collector\'s wall', async () => {
+    useAuthStore.mockReturnValue({ user: { id: 1 } });
+    client.post.mockResolvedValue({ data: { data: { id: '77', type: 'user_poster', attributes: { status: 'owned' } } } });
+    renderPoster();
+    fireEvent.click(await screen.findByRole('button', { name: /put it on my wall/i }));
+    await waitFor(() => expect(client.post).toHaveBeenCalledWith('/user_posters', { user_poster: { poster_id: '123', status: 'owned' } }));
+  });
 
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        expect(screen.getByText(/failed to fetch poster details/i)).toBeInTheDocument();
-      });
+  it('shows the collector\'s copy when it is already on their wall', async () => {
+    useAuthStore.mockReturnValue({ user: { id: 1 } });
+    routeGets({
+      copies: [{ id: '77', type: 'user_poster', attributes: { status: 'owned', condition: 'mint', edition_number: '88/200' }, relationships: { poster: { data: { id: '123', type: 'poster' } } } }],
     });
+    renderPoster();
+    expect(await screen.findByText('On your wall')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /manage your copy/i })).toHaveAttribute('href', '/wall/77');
+  });
 
-    it('displays error when poster not found', async () => {
-      client.get.mockResolvedValue({ data: { data: null } });
-
-      render(
-        <MemoryRouter initialEntries={['/poster/123']}>
-          <Routes>
-            <Route path="/poster/:id" element={<PosterDetail />} />
-          </Routes>
-        </MemoryRouter>
-      );
-
-      await waitFor(() => {
-        // The component shows either the error message or "Poster not found"
-        const errorElement = screen.getByRole('alert');
-        expect(errorElement).toBeInTheDocument();
-      });
-    });
+  it('says when a poster does not exist', async () => {
+    client.get.mockRejectedValue({ response: { status: 404 } });
+    renderPoster();
+    expect(await screen.findByRole('alert')).toHaveTextContent(/couldn.t find that poster/i);
   });
 });

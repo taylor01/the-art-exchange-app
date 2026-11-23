@@ -1,10 +1,8 @@
 export default function Terms() {
   return (
-    <div className="container py-5">
-      <div className="row">
-        <div className="col-lg-8 mx-auto">
+    <article className="prose">
           <h1 className="mb-4">Terms and Conditions</h1>
-          <p className="text-muted mb-5">
+          <p className="muted">
             <strong>Last Updated:</strong> {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
 
@@ -266,8 +264,6 @@ export default function Terms() {
               BY USING THE SERVICE, YOU ACKNOWLEDGE THAT YOU HAVE READ THESE TERMS AND AGREE TO BE BOUND BY THEM.
             </p>
           </section>
-        </div>
-      </div>
-    </div>
+    </article>
   );
 }
