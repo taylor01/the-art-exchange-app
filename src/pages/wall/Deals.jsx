@@ -145,7 +145,8 @@ function InquiryRow({ inquiry, trade, onChange }) {
           {inquiry.status === 'accepted' && !trade && !recording && (
             <button type="button" className="tax-btn tax-btn--primary" onClick={() => setRecording(true)}>Record the trade</button>
           )}
-          {inquiry.allowed.map((t) => (
+          {/* While a trade is pending, cancelling the trade is the only way out. */}
+          {!(trade && trade.status === 'pending_confirmation') && inquiry.allowed.map((t) => (
             <button key={t} type="button" className={t === 'accepted' ? 'tax-btn tax-btn--ink' : 'tax-btn tax-btn--secondary'} disabled={busy} onClick={() => transition(t)}>
               {TRANSITION_LABELS[t] || t}
             </button>

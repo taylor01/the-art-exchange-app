@@ -79,6 +79,18 @@ describe('Deals', () => {
     await waitFor(() => expect(client.patch).toHaveBeenCalledWith('/trades/9/confirm', { trade: { price_dollars: 180, move_copy: true, remove_copy: false } }));
   });
 
+  it('offers only Cancel the trade while a recorded trade waits on the other side', async () => {
+    route({
+      inquiries: [inquiry({ status: 'accepted', allowed_transitions: ['cancelled'], counterpart_email: 'fan@example.com', trade_id: '9' })],
+      trades: [trade({ role: 'seller', counterpart_handle: 'moth_fan', allowed_actions: ['cancel'], inquiry_id: '5' })],
+    });
+    renderDeals();
+    expect(await screen.findByText(/Waiting for @moth_fan to confirm/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cancel the trade' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Call it off' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Record the trade' })).not.toBeInTheDocument();
+  });
+
   it('explains why a closed inquiry closed', async () => {
     route({ inquiries: [inquiry({ status: 'cancelled', closed_reason: 'copy_sold', allowed_transitions: [], role: 'buyer' })] });
     renderDeals();
