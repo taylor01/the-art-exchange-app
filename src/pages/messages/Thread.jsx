@@ -47,7 +47,8 @@ export default function Thread({ id, onChanged }) {
 
   useEffect(() => {
     let live = true;
-    sync().catch((err) => { if (live) setError(err); });
+    // Deferred a tick, so no state is set synchronously inside the effect.
+    Promise.resolve().then(sync).catch((err) => { if (live) setError(err); });
     const poll = () => { if (document.visibilityState === 'visible') sync().catch(() => {}); };
     const timer = setInterval(poll, POLL_MS);
     document.addEventListener('visibilitychange', poll);
