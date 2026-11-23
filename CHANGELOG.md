@@ -6,6 +6,11 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- The poster page asks the API only for the collector's copies of that poster
+  (`GET /user_posters?poster_id=`, API #78) instead of their whole wall.
+
 ## [0.2.0] - 2026-11-23
 
 ### Changed
