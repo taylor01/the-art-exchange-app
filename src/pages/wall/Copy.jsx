@@ -111,7 +111,7 @@ function CopyForm({ copy }) {
 
           <section className="tax-panel" aria-label="Listing">
             <div className="tax-panel__body cluster" style={{ justifyContent: 'space-between' }}>
-              <span><strong>List for sale</strong><br /><span className="body-s muted">Collectors hunting this poster can ask you about it.</span></span>
+              <span><strong>List for sale</strong><br /><span className="body-s muted">Collectors hunting this poster can message you about it.</span></span>
               <Switch checked={form.forSale} onChange={toggleSale} label="List for sale" disabled={saving} />
             </div>
             {form.forSale && listPrivate && (

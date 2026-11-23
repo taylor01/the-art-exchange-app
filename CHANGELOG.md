@@ -10,12 +10,16 @@ All notable changes to this project are recorded here. The format follows
 
 - Poster page **Prices**: last sale, 12-month median and range, value against the
   release price, and a bar per confirmed sale (`GET /posters/:id/price_history`), beside
-  **For sale now** (`GET /posters/:id/listings`) with an Ask form (message and an optional
-  offer). Needs API #80 and #82.
-- My Wall **Buying & selling** tab: inquiries about your copies and ones you sent, with
-  buttons from the API's `allowed_transitions`; the other collector's email once accepted;
-  recording a trade (price, plus what happens to your wall); confirming a trade by
-  sending the recorded price back; and completed trades. Closed inquiries say why.
+  **For sale now** (`GET /posters/:id/listings`) with a **Message @seller** button on each
+  copy. Needs API #80 and #82.
+- **Messages** (`/messages`, `/messages/:id`, with an unread count in the header): one
+  conversation per buyer per copy. Talk it over, the seller presses **Mark sold** with the
+  price, and the buyer confirms it in the thread; it then locks and stays as the record.
+  Either person can close a conversation or report it. Nobody's email is shown to the
+  other person. Threads refresh every 10 seconds while on screen and mark themselves read
+  up to the newest message shown. Needs API #91.
+- My Wall **Buying & selling** tab: sales waiting on you or on the other collector, each
+  linking to its conversation, and completed trades.
 - "How you hand it over" (ships / meets at shows / either) on a copy listed for sale.
 
 ## [0.3.0] - 2026-11-23

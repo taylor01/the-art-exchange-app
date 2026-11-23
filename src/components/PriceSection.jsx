@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { askAboutCopy, getListings, getPriceHistory } from '../api/market';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { getListings, getPriceHistory, startConversation } from '../api/market';
 import { apiErrorDetail } from '../api/collection';
 import { useApi } from '../hooks/useApi';
 import { useAuthStore } from '../store/authStore';
@@ -126,13 +126,28 @@ function shortDate(iso) {
 function ForSale({ state }) {
   const { user } = useAuthStore();
   const location = useLocation();
-  const [asking, setAsking] = useState(null);
-  const [sent, setSent] = useState({});
+  const navigate = useNavigate();
+  const [opening, setOpening] = useState(null);
+  const [error, setError] = useState(null);
 
   if (state.loading) return <Loading label="Loading copies for sale" />;
   if (state.error) return <ErrorNote onRetry={state.reload}>We couldn&apos;t load copies for sale.</ErrorNote>;
   const { listings, total } = state.data;
   const mineHandle = user?.handle && normalizeHandle(user.handle);
+
+  // Opens the conversation about this copy (a new one, or the one you
+  // already have) and goes to it.
+  const message = async (listing) => {
+    setOpening(listing.id);
+    setError(null);
+    try {
+      const conversation = await startConversation(listing.id);
+      navigate(`/messages/${conversation.id}`);
+    } catch (err) {
+      setError({ id: listing.id, text: apiErrorDetail(err) || "We couldn't open that conversation. Try again." });
+      setOpening(null);
+    }
+  };
 
   return (
     <div className="tax-panel" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -157,60 +172,29 @@ function ForSale({ state }) {
                     {handoffLabel(l.handoff) ? ` · ${handoffLabel(l.handoff)}` : ''}
                   </span>
                 </span>
-                {accountsEnabled && !mine && !sent[l.id] && (
-                  user
-                    ? <button type="button" className="tax-btn tax-btn--primary" style={{ minHeight: 44, padding: '0 14px' }} aria-expanded={asking === l.id} onClick={() => setAsking(asking === l.id ? null : l.id)}>Ask</button>
-                    : <Link to="/signin" state={{ from: location.pathname }} className="tax-btn tax-btn--primary" style={{ minHeight: 44, padding: '0 14px' }}>Ask</Link>
-                )}
                 {mine && <span className="tax-sticker tax-sticker--ink">Yours</span>}
               </div>
-              {sent[l.id] && <p className="body-s" role="status" style={{ margin: 'var(--space-2) 0 0', fontWeight: 700 }}>Sent. @{l.sellerHandle} will see it with their inquiries. You&apos;ll get each other&apos;s email if they accept.</p>}
-              {asking === l.id && !sent[l.id] && (
-                <AskForm listing={l} onSent={() => { setSent((s) => ({ ...s, [l.id]: true })); setAsking(null); }} />
+              {accountsEnabled && !mine && (
+                user
+                  ? (
+                    <button type="button" className="tax-btn tax-btn--primary" style={{ width: '100%', minHeight: 44, marginTop: 'var(--space-3)' }} disabled={opening === l.id} onClick={() => message(l)}>
+                      {opening === l.id ? 'Opening…' : `Message @${l.sellerHandle}`}
+                    </button>
+                  )
+                  : (
+                    <Link to="/signin" state={{ from: location.pathname }} className="tax-btn tax-btn--primary" style={{ width: '100%', minHeight: 44, marginTop: 'var(--space-3)' }}>
+                      Message @{l.sellerHandle}
+                    </Link>
+                  )
               )}
+              {error?.id === l.id && <div className="tax-alert tax-alert--error" role="alert" style={{ marginTop: 'var(--space-2)' }}>{error.text}</div>}
             </li>
           );
         })}
       </ul>
       <div className="tax-panel__body" style={{ marginTop: 'auto', borderTop: 'var(--border-heavy) solid var(--ink)' }}>
-        <p className="body-s muted" style={{ margin: 0 }}>Only collectors whose For sale list is public appear here.</p>
+        <p className="body-s muted" style={{ margin: 0 }}>Only collectors whose For sale list is public appear here. Messages stay on The Art Exchange; nobody&apos;s email is shared.</p>
       </div>
     </div>
-  );
-}
-
-function AskForm({ listing, onSent }) {
-  const [message, setMessage] = useState('');
-  const [offer, setOffer] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-
-  const submit = async (event) => {
-    event.preventDefault();
-    setBusy(true);
-    setError('');
-    try {
-      await askAboutCopy(listing.id, { message: message.trim(), offerDollars: offer.trim().replace(/[$,]/g, '') });
-      onSent();
-    } catch (err) {
-      setError(apiErrorDetail(err) || "That didn't send. Try again.");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <form className="stack" style={{ gap: 'var(--space-3)', marginTop: 'var(--space-3)' }} onSubmit={submit} noValidate>
-      <div className="tax-field">
-        <label className="tax-label" htmlFor={`msg-${listing.id}`}>Message (optional)</label>
-        <textarea id={`msg-${listing.id}`} className="tax-textarea" style={{ minHeight: 72 }} maxLength={1000} value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Still have it? I can meet at the Red Rocks shows." />
-      </div>
-      <div className="tax-field">
-        <label className="tax-label" htmlFor={`offer-${listing.id}`}>Your offer (optional)</label>
-        <input id={`offer-${listing.id}`} className="tax-input" inputMode="decimal" placeholder={listing.askingPrice != null ? formatMoney(listing.askingPrice) : '$'} value={offer} onChange={(e) => setOffer(e.target.value)} />
-      </div>
-      {error && <div className="tax-alert tax-alert--error" role="alert">{error}</div>}
-      <button type="submit" className="tax-btn tax-btn--ink" disabled={busy}>{busy ? 'Sending…' : `Ask @${listing.sellerHandle}`}</button>
-    </form>
   );
 }

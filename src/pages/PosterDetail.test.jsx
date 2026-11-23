@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useParams } from 'react-router-dom';
 import PosterDetail from './PosterDetail';
 import client from '../api/client';
 import { useAuthStore } from '../store/authStore';
@@ -25,12 +25,18 @@ function routeGets({ copies = [] } = {}) {
   });
 }
 
+function MessagesStub() {
+  const { id } = useParams();
+  return <p>Conversation {id}</p>;
+}
+
 function renderPoster() {
   return render(
     <MemoryRouter initialEntries={['/poster/moth-parade-red-rocks-2022']}>
       <Routes>
         <Route path="/poster/:id" element={<PosterDetail />} />
         <Route path="/signin" element={<p>Sign in page</p>} />
+        <Route path="/messages/:id" element={<MessagesStub />} />
       </Routes>
     </MemoryRouter>
   );
@@ -91,15 +97,19 @@ describe('PosterDetail', () => {
     expect(screen.getByRole('link', { name: '@gorgeous_g' })).toHaveAttribute('href', '/c/gorgeous_g');
   });
 
-  it('sends a signed-in collector\'s question to the seller', async () => {
+  it('opens a conversation with the seller from a copy for sale', async () => {
     useAuthStore.mockReturnValue({ user: { id: 1, handle: 'robin' } });
-    client.post.mockResolvedValue({ data: { data: { id: '5', type: 'inquiry', attributes: { status: 'pending' } } } });
+    client.post.mockResolvedValue({ data: { data: { id: '5', type: 'conversation', attributes: { status: 'open', role: 'buyer' } } } });
     renderPoster();
-    fireEvent.click(await screen.findByRole('button', { name: 'Ask' }));
-    fireEvent.change(screen.getByLabelText('Your offer (optional)'), { target: { value: '$180' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Ask @gorgeous_g' }));
-    await waitFor(() => expect(client.post).toHaveBeenCalledWith('/user_posters/91/inquiries', { inquiry: { message: null, offer_dollars: '180' } }));
-    expect(await screen.findByText(/sent\. @gorgeous_g will see it/i)).toBeInTheDocument();
+    fireEvent.click(await screen.findByRole('button', { name: 'Message @gorgeous_g' }));
+    await waitFor(() => expect(client.post).toHaveBeenCalledWith('/user_posters/91/conversations', { conversation: { message: null, offer_dollars: null } }));
+    expect(await screen.findByText('Conversation 5')).toBeInTheDocument();
+  });
+
+  it('sends a signed-out visitor to sign in before messaging', async () => {
+    useAuthStore.mockReturnValue({ user: null });
+    renderPoster();
+    expect(await screen.findByRole('link', { name: 'Message @gorgeous_g' })).toHaveAttribute('href', '/signin');
   });
 
   it('says when a poster does not exist', async () => {

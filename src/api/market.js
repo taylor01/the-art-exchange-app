@@ -1,4 +1,4 @@
-// Buying and selling: listings, price history, inquiries and trades (API #80, #82).
+// Buying and selling: listings, price history, conversations and trades (API #80, #82, #91).
 import client from './client';
 import { indexIncluded, related } from './jsonapi';
 import { toPoster } from './catalog';
@@ -39,47 +39,91 @@ export async function getPriceHistory(posterId) {
   };
 }
 
-// POST /user_posters/:id/inquiries  { inquiry: { message, offer_dollars } }
-export async function askAboutCopy(copyId, { message, offerDollars }) {
-  const { data } = await client.post(`/user_posters/${encodeURIComponent(copyId)}/inquiries`, {
-    inquiry: { message: message || null, offer_dollars: offerDollars || null },
-  });
-  return toInquiry(data.data, indexIncluded(data.included));
+// Conversations (API #91): a buyer and a seller talking about one listed copy.
+// Nobody's email is ever part of it.
+
+function toCopy(c) {
+  return c ? { id: c.id, editionNumber: c.edition_number, condition: c.condition, askingPrice: c.asking_price_dollars ?? null, handoff: c.handoff } : null;
 }
 
-function toInquiry(r, index) {
+function toConversation(r, index) {
   const a = r.attributes || {};
   const poster = related(r, 'poster', index);
+  const t = a.trade;
   return {
     id: r.id,
-    status: a.status,
-    closedReason: a.closed_reason,
-    message: a.message,
-    offer: a.offer_dollars ?? null,
+    status: a.status, // open | completed | closed
+    closedReason: a.closed_reason || null,
+    role: a.role, // buyer | seller
+    counterpartHandle: a.counterpart_handle || null,
+    unread: !!a.unread,
+    lastMessage: a.last_message ? { body: a.last_message.body, fromMe: !!a.last_message.from_me, createdAt: a.last_message.created_at } : null,
+    lastMessageAt: a.last_message_at || null,
     createdAt: a.created_at,
-    role: a.role,
-    counterpartHandle: a.counterpart_handle,
-    counterpartEmail: a.counterpart_email || null,
-    tradeId: a.trade_id || null,
-    copy: a.copy
-      ? { id: a.copy.id, editionNumber: a.copy.edition_number, condition: a.copy.condition, askingPrice: a.copy.asking_price_dollars ?? null, handoff: a.copy.handoff }
+    copy: toCopy(a.copy),
+    trade: t
+      ? { id: t.id, status: t.status, price: t.price_dollars, allowed: t.allowed_actions || [], recordedByMe: !!t.recorded_by_me, createdAt: t.created_at }
       : null,
     allowed: a.allowed_transitions || [],
     poster: poster ? toPoster(poster, index) : null,
   };
 }
 
-// GET /inquiries?role=sent|received&status=
-export async function listInquiries(params = {}) {
-  const { data } = await client.get('/inquiries', { params: { per_page: 100, ...params } });
-  const index = indexIncluded(data.included);
-  return (data.data || []).map((r) => toInquiry(r, index));
+function toMessage(r) {
+  const a = r.attributes || {};
+  return { id: r.id, body: a.body || '', createdAt: a.created_at, fromMe: !!a.from_me, senderRole: a.sender_role || null };
 }
 
-// PATCH /inquiries/:id  { inquiry: { status } }
-export async function setInquiryStatus(id, status) {
-  const { data } = await client.patch(`/inquiries/${encodeURIComponent(id)}`, { inquiry: { status } });
-  return toInquiry(data.data, indexIncluded(data.included));
+// POST /user_posters/:id/conversations  { conversation: { message?, offer_dollars? } }
+// Opens the buyer's conversation about a copy, or returns the open one.
+export async function startConversation(copyId, { message, offerDollars } = {}) {
+  const { data } = await client.post(`/user_posters/${encodeURIComponent(copyId)}/conversations`, {
+    conversation: { message: message || null, offer_dollars: offerDollars || null },
+  });
+  return toConversation(data.data, indexIncluded(data.included));
+}
+
+// GET /conversations?role=buying|selling&status=open|completed|closed
+export async function listConversations(params = {}) {
+  const { data } = await client.get('/conversations', { params: { per_page: 100, ...params } });
+  const index = indexIncluded(data.included);
+  return { conversations: (data.data || []).map((r) => toConversation(r, index)), unreadCount: data.meta?.unread_count ?? 0 };
+}
+
+// The nav badge: how many conversations have something unread.
+export async function getUnreadCount() {
+  const { data } = await client.get('/conversations', { params: { per_page: 1 } });
+  return data.meta?.unread_count ?? 0;
+}
+
+export async function getConversation(id) {
+  const { data } = await client.get(`/conversations/${encodeURIComponent(id)}`);
+  return toConversation(data.data, indexIncluded(data.included));
+}
+
+// GET /conversations/:id/messages, oldest first. `after` fetches only newer ones.
+export async function listMessages(id, params = {}) {
+  const { data } = await client.get(`/conversations/${encodeURIComponent(id)}/messages`, { params });
+  return { messages: (data.data || []).map(toMessage), hasEarlier: !!data.meta?.has_earlier };
+}
+
+export async function sendMessage(id, body) {
+  const { data } = await client.post(`/conversations/${encodeURIComponent(id)}/messages`, { message: { body } });
+  return toMessage(data.data);
+}
+
+// Marks it read up to the newest message shown, so one that arrives meanwhile stays unread.
+export async function markRead(id, messageId) {
+  await client.patch(`/conversations/${encodeURIComponent(id)}/read`, messageId ? { message_id: messageId } : {});
+}
+
+export async function closeConversation(id) {
+  const { data } = await client.patch(`/conversations/${encodeURIComponent(id)}`, { conversation: { status: 'closed' } });
+  return toConversation(data.data, indexIncluded(data.included));
+}
+
+export async function reportConversation(id, { reason, messageId } = {}) {
+  await client.post(`/conversations/${encodeURIComponent(id)}/report`, { report: { reason, message_id: messageId || null } });
 }
 
 function toTrade(r, index) {
@@ -92,7 +136,7 @@ function toTrade(r, index) {
     editionNumber: a.edition_number,
     editionType: a.edition_type,
     condition: a.condition,
-    inquiryId: a.inquiry_id,
+    conversationId: a.conversation_id,
     role: a.role,
     counterpartHandle: a.counterpart_handle,
     sellerConfirmed: a.seller_confirmed,
@@ -112,10 +156,10 @@ export async function listTrades(params = {}) {
   return (data.data || []).map((r) => toTrade(r, index));
 }
 
-// POST /trades — records it and confirms it for the person recording.
-export async function recordTrade({ inquiryId, priceDollars, moveCopy, removeCopy }) {
+// POST /trades — "Mark sold": records it and confirms it for the person recording.
+export async function recordTrade({ conversationId, priceDollars, moveCopy, removeCopy }) {
   const { data } = await client.post('/trades', {
-    trade: { inquiry_id: inquiryId, price_dollars: priceDollars, move_copy: moveCopy, remove_copy: removeCopy },
+    trade: { conversation_id: conversationId, price_dollars: priceDollars, move_copy: moveCopy, remove_copy: removeCopy },
   });
   return toTrade(data.data, indexIncluded(data.included));
 }
