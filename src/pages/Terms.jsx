@@ -3,7 +3,7 @@ export default function Terms() {
     <article className="prose">
           <h1 className="mb-4">Terms and Conditions</h1>
           <p className="muted">
-            <strong>Last Updated:</strong> {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+            <strong>Last Updated:</strong> November 23, 2026
           </p>
 
           <section className="mb-5">
@@ -30,8 +30,8 @@ export default function Terms() {
               <li>Create and maintain a digital catalog of your poster collection</li>
               <li>Track poster details including condition, edition, and provenance</li>
               <li>Discover and browse posters from various artists, venues, and events</li>
-              <li>Connect with other collectors (future feature)</li>
-              <li>Buy, sell, or trade posters (planned future feature)</li>
+              <li>Share hunt and for-sale lists, and message other collectors about copies for sale</li>
+              <li>Record and confirm trades with other collectors, which feed each poster&apos;s price history</li>
             </ul>
           </section>
 
@@ -47,8 +47,8 @@ export default function Terms() {
 
             <h3 className="h5 mb-3 mt-4">3.2 Account Security</h3>
             <p>
-              You are responsible for maintaining the confidentiality of your account credentials and for all activities
-              that occur under your account. You agree to notify us immediately of any unauthorized use of your account.
+              We sign you in with a one-time code sent to your email address, so keep that email account secure. You are
+              responsible for all activities that occur under your account. You agree to notify us immediately of any unauthorized use of your account.
             </p>
 
             <h3 className="h5 mb-3 mt-4">3.3 Account Termination</h3>
@@ -120,24 +120,27 @@ export default function Terms() {
               <li>Upload malicious code or attempt to gain unauthorized access</li>
               <li>Harass, abuse, or harm other users</li>
               <li>Engage in fraudulent activities or scams</li>
-              <li>Use the Service for any commercial purpose without our permission</li>
+              <li>List, sell or trade counterfeit, misrepresented or stolen posters</li>
+              <li>Record a trade that didn&apos;t happen, or at a price that wasn&apos;t paid, including to move a poster&apos;s price history</li>
+              <li>Use messages to send spam, or to move a buyer off protected payment methods in order to defraud them</li>
             </ul>
           </section>
 
           <section className="mb-5">
-            <h2 className="h4 mb-3">7. Future E-Commerce Features</h2>
+            <h2 className="h4 mb-3">7. Buying, Selling and Trading</h2>
             <p>
-              We plan to introduce marketplace features that will allow users to buy, sell, or trade posters. When these
-              features become available, additional terms and conditions will apply. These may include:
+              The Art Exchange lets collectors find each other and talk about copies for sale. We are not a party to any sale
+              or trade. We don&apos;t handle payment, shipping or delivery, we don&apos;t take a fee, and we don&apos;t verify
+              that a poster is genuine or in the condition described.
             </p>
             <ul>
-              <li>Transaction fees and payment processing terms</li>
-              <li>Seller and buyer obligations</li>
-              <li>Dispute resolution procedures</li>
-              <li>Shipping and delivery policies</li>
+              <li><strong>Sellers</strong> must own what they list and describe its edition and condition honestly.</li>
+              <li><strong>Buyers</strong> should satisfy themselves about a poster before paying, and are encouraged to pay with a method that offers buyer protection.</li>
+              <li><strong>Marking a sale</strong> records the price you both agreed. Confirm only the price that was actually paid.</li>
+              <li><strong>Disputes</strong> are between the buyer and the seller. If you think someone is acting fraudulently, report the conversation; we may suspend or remove accounts that break these Terms.</li>
             </ul>
             <p>
-              We are not responsible for transactions between users. Users enter into such transactions at their own risk.
+              Users enter into transactions at their own risk, and we are not responsible for transactions between users.
             </p>
           </section>
 

@@ -137,7 +137,7 @@ Set at build time (Vite). Copy `.env.example` to `.env` for local development.
 | Variable | Purpose |
 |---|---|
 | `VITE_API_URL` | API base URL. Local: `http://localhost:3000/api/v1`. Production: `https://api.theartexch.com/api/v1`, set by the deploy. |
-| `VITE_ENABLE_ACCOUNTS` | `true` shows sign-in, sign-up and collections. Off in production until the API supports sign-in for imported users. |
+| `VITE_ENABLE_ACCOUNTS` | `true` shows sign-in, sign-up, walls, Messages and Settings. On in production from app v0.5.0; set it to `false` in `deploy.yml` to hide accounts again. |
 
 ## 🚀 Deployment
 
