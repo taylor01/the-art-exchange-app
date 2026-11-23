@@ -6,6 +6,8 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-23
+
 ### Added
 
 - **Delete your account** at the bottom of Settings: says what is deleted and what stays
