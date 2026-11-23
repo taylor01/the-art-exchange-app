@@ -8,6 +8,9 @@ import { useAuthStore } from '../store/authStore';
 // Mock the API client
 vi.mock('../api/client');
 
+// These tests cover the account features, which are off by default.
+vi.mock('../config/features', () => ({ accountsEnabled: true }));
+
 // Mock the auth store
 vi.mock('../store/authStore', () => ({
   useAuthStore: vi.fn(),
@@ -149,8 +152,6 @@ describe('PosterDetail', () => {
     });
 
     it('navigates to default gallery when no state provided', async () => {
-      const mockNavigate = vi.fn();
-
       render(
         <MemoryRouter initialEntries={['/poster/123']}>
           <Routes>

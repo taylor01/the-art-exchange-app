@@ -29,7 +29,7 @@ export const useAuthStore = create(
       login: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
-          const apiUrl = window.APP_CONFIG?.API_URL || import.meta.env.VITE_API_URL;
+          const apiUrl = import.meta.env.VITE_API_URL;
           const response = await fetch(
             `${apiUrl}/auth/login`,
             {
@@ -65,7 +65,7 @@ export const useAuthStore = create(
       signup: async (userData) => {
         set({ isLoading: true, error: null });
         try {
-          const apiUrl = window.APP_CONFIG?.API_URL || import.meta.env.VITE_API_URL;
+          const apiUrl = import.meta.env.VITE_API_URL;
           const response = await fetch(
             `${apiUrl}/auth/signup`,
             {

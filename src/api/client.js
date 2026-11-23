@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
 
-// Use runtime config if available (production), fallback to Vite env for development
-const API_BASE_URL = window.APP_CONFIG?.API_URL || import.meta.env.VITE_API_URL;
+// Set at build time: the deploy builds with VITE_API_URL=https://api.theartexch.com/api/v1.
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const client = axios.create({
   baseURL: API_BASE_URL,

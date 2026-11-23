@@ -2,7 +2,6 @@
 
 > A modern React web application for concert poster collectors to catalog, discover, and connect with fellow enthusiasts.
 
-[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://github.com/taylor01/the-art-exchange-app/pkgs/container/the-art-exchange-app)
 [![React](https://img.shields.io/badge/react-18-blue.svg)](https://react.dev/)
 [![Bootstrap](https://img.shields.io/badge/bootstrap-5-purple.svg)](https://getbootstrap.com/)
 
@@ -20,7 +19,6 @@ This is the **frontend web application** that connects to [The Art Exchange API]
 - **🔐 Authentication** - Secure JWT-based user authentication
 - **📱 Responsive Design** - Works seamlessly on desktop, tablet, and mobile
 - **⚡ Fast Performance** - Built with Vite for lightning-fast development and production builds
-- **🐳 Docker-Ready** - Production-ready Docker configuration with GHCR integration
 
 ## 🚀 Tech Stack
 
@@ -34,8 +32,8 @@ This is the **frontend web application** that connects to [The Art Exchange API]
 | **Authentication** | JWT with token refresh |
 | **Styling** | Custom CSS + Bootstrap utilities |
 | **Build Tool** | Vite |
-| **Deployment** | Docker + nginx |
-| **CI/CD** | GitHub Actions → GHCR |
+| **Deployment** | S3 + CloudFront (Terraform in `infra/web`) |
+| **CI/CD** | GitHub Actions: CI on PRs, tag-gated deploys |
 
 ## 📋 Prerequisites
 
@@ -115,9 +113,6 @@ the-art-exchange-app/
 │   ├── custom.css                # Custom styling
 │   └── index.css                 # Base styles
 ├── .env.example                  # Environment template
-├── docker-compose.yml            # Docker Compose config
-├── Dockerfile                    # Multi-stage Docker build
-├── nginx.conf                    # nginx configuration
 └── package.json                  # Dependencies
 
 ```
@@ -137,88 +132,24 @@ the-art-exchange-app/
 
 ## 🔧 Environment Variables
 
-Create a `.env` file based on `.env.example`:
+Set at build time (Vite). Copy `.env.example` to `.env` for local development.
 
-```env
-# API Configuration
-VITE_API_URL=http://localhost:3000/api/v1
+| Variable | Purpose |
+|---|---|
+| `VITE_API_URL` | API base URL. Local: `http://localhost:3000/api/v1`. Production: `https://api.theartexch.com/api/v1`, set by the deploy. |
+| `VITE_ENABLE_ACCOUNTS` | `true` shows sign-in, sign-up and collections. Off in production until the API supports sign-in for imported users. |
 
-# Docker Configuration
-IMAGE_TAG=latest
-PORT=3001
-```
+## 🚀 Deployment
 
-**Production:**
-```env
-VITE_API_URL=https://api.theartexch.com/api/v1
-```
+The site is static: Vite builds it, and it is served from a private S3 bucket through
+CloudFront at **https://theartexch.com** (`www` redirects there), in the `taylor-art-exchange`
+AWS account. Infrastructure is Terraform in `infra/web`; see `CLAUDE.md`.
 
-> **Note:** Only variables prefixed with `VITE_` are exposed to the client.
-
-## 🐳 Docker Deployment
-
-### Using Docker Compose (Recommended)
-
-```bash
-# Pull latest image from GHCR
-docker-compose pull
-
-# Start container
-docker-compose up -d
-
-# View logs
-docker-compose logs -f web
-
-# Stop container
-docker-compose down
-```
-
-### Using Docker CLI
-
-```bash
-# Pull image
-docker pull ghcr.io/taylor01/the-art-exchange-app:latest
-
-# Run container
-docker run -d \
-  --name art-exchange-web \
-  -p 3001:80 \
-  --env-file .env \
-  --restart unless-stopped \
-  ghcr.io/taylor01/the-art-exchange-app:latest
-```
-
-### Build Locally
-
-```bash
-# Build image
-docker build -t the-art-exchange-app:local .
-
-# Run locally built image
-docker run -d -p 3001:80 --env-file .env the-art-exchange-app:local
-```
-
-For complete deployment instructions, see [DEPLOYMENT_GHCR.md](./DEPLOYMENT_GHCR.md).
-
-## 🔄 CI/CD Pipeline
-
-The project uses GitHub Actions for automated builds:
-
-**Trigger Events:**
-- Push to `main` branch → builds `latest` and `main` tags
-- Version tags (e.g., `v1.0.0`) → builds semantic version tags
-
-**Workflow:** `.github/workflows/build-and-push.yml`
-
-**Image Registry:** `ghcr.io/taylor01/the-art-exchange-app`
-
-**Creating a Release:**
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
-
-This creates tags: `v1.0.0`, `v1.0`, `v1`, and `latest`
+- **CI** (`.github/workflows/ci.yml`): lint, dependency audit, tests and a build on every pull
+  request and push to `main`.
+- **Deploys** (`.github/workflows/deploy.yml`): merging does not deploy; a `vX.Y.Z` tag does.
+  The deploy checks the commit is on `main`, CI passed and `CHANGELOG.md` has the version, then
+  builds, uploads to S3 and clears the CloudFront cache.
 
 ## 🔗 API Integration
 
@@ -341,7 +272,7 @@ npm run test:coverage # With coverage
 - ✅ Home page (5 tests)
 
 **CI/CD:**
-Tests automatically run in GitHub Actions before building Docker images. Build only proceeds if all tests pass.
+Tests run in GitHub Actions on every pull request and push to `main`; a release can only deploy a commit whose CI passed.
 
 ## 🚧 Roadmap
 

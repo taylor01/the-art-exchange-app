@@ -167,7 +167,7 @@ Coverage is stored in `coverage/` directory (gitignored).
 Tests run automatically in GitHub Actions:
 - On every push to main
 - On every pull request
-- Before building Docker images
+- Before a release can deploy (the deploy requires passing CI on the tagged commit)
 
 Build will fail if tests fail.
 

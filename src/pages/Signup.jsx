@@ -43,7 +43,7 @@ export default function Signup() {
       } else {
         setError(result.error || 'Signup failed');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred during signup');
     } finally {
       setIsLoading(false);

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import client from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { accountsEnabled } from '../config/features';
 
 export default function PosterDetail() {
   const { id } = useParams();
@@ -172,7 +173,7 @@ export default function PosterDetail() {
           )}
 
           {/* Collection Action */}
-          {user && (
+          {accountsEnabled && user && (
             <div className="mb-4">
               {inCollection ? (
                 <button
@@ -192,7 +193,7 @@ export default function PosterDetail() {
             </div>
           )}
 
-          {!user && (
+          {accountsEnabled && !user && (
             <div className="alert alert-info">
               <button
                 className="btn btn-primary"
