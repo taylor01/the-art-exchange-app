@@ -4,6 +4,9 @@ import { BrowserRouter } from 'react-router-dom';
 import Home from './Home';
 import { useAuthStore } from '../store/authStore';
 
+// These tests cover the account features, which are off by default.
+vi.mock('../config/features', () => ({ accountsEnabled: true }));
+
 // Mock the auth store
 vi.mock('../store/authStore', () => ({
   useAuthStore: vi.fn(),

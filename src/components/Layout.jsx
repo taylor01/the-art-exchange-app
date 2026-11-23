@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { accountsEnabled } from '../config/features';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 export default function Layout({ children }) {
@@ -69,7 +70,7 @@ export default function Layout({ children }) {
                   </li>
                 </>
               )}
-              {!user && (
+              {accountsEnabled && !user && (
                 <>
                   <li className="nav-item">
                     <Link to="/login" className="nav-link">

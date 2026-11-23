@@ -1,3 +1,5 @@
+import { accountsEnabled } from '../config/features';
+
 export default function About() {
   return (
     <div className="container py-5">
@@ -280,15 +282,27 @@ export default function About() {
           </section>
 
           {/* CTA */}
-          <section className="text-center py-5" style={{ backgroundColor: 'var(--stone-50)', borderRadius: '1rem' }}>
-            <h3 className="h4 mb-3">Ready to Start Your Collection?</h3>
-            <p className="mb-4" style={{ color: 'var(--stone-600)' }}>
-              Join our community and start cataloging your posters today.
-            </p>
-            <a href="/signup" className="btn btn-primary px-5">
-              Get Started Free
-            </a>
-          </section>
+          {accountsEnabled ? (
+            <section className="text-center py-5" style={{ backgroundColor: 'var(--stone-50)', borderRadius: '1rem' }}>
+              <h3 className="h4 mb-3">Ready to Start Your Collection?</h3>
+              <p className="mb-4" style={{ color: 'var(--stone-600)' }}>
+                Join our community and start cataloging your posters today.
+              </p>
+              <a href="/signup" className="btn btn-primary px-5">
+                Get Started Free
+              </a>
+            </section>
+          ) : (
+            <section className="text-center py-5" style={{ backgroundColor: 'var(--stone-50)', borderRadius: '1rem' }}>
+              <h3 className="h4 mb-3">Explore the Collection</h3>
+              <p className="mb-4" style={{ color: 'var(--stone-600)' }}>
+                Browse hundreds of concert posters and the shows behind them.
+              </p>
+              <a href="/gallery" className="btn btn-primary px-5">
+                Browse the Gallery
+              </a>
+            </section>
+          )}
         </div>
       </div>
     </div>

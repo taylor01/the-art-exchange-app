@@ -9,6 +9,7 @@ import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import About from './pages/About';
 import { useAuthStore } from './store/authStore';
+import { accountsEnabled } from './config/features';
 
 function App() {
   const { user } = useAuthStore();
@@ -20,8 +21,12 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/gallery" element={<Gallery />} />
           <Route path="/poster/:id" element={<PosterDetail />} />
-          <Route path="/login" element={user ? <Navigate to="/gallery" /> : <Login />} />
-          <Route path="/signup" element={user ? <Navigate to="/gallery" /> : <Signup />} />
+          {accountsEnabled && (
+            <>
+              <Route path="/login" element={user ? <Navigate to="/gallery" /> : <Login />} />
+              <Route path="/signup" element={user ? <Navigate to="/gallery" /> : <Signup />} />
+            </>
+          )}
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/about" element={<About />} />

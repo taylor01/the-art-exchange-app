@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { accountsEnabled } from '../config/features';
 
 export default function Home() {
   const { user } = useAuthStore();
@@ -49,7 +50,13 @@ export default function Home() {
             </p>
           </div>
 
-          {!user ? (
+          {!accountsEnabled ? (
+            <div className="d-flex justify-content-center mb-4">
+              <Link to="/gallery" className="btn btn-primary d-inline-flex align-items-center justify-content-center" style={{ minWidth: '200px' }}>
+                Browse the Gallery
+              </Link>
+            </div>
+          ) : !user ? (
             <>
               {/* Guest User CTAs */}
               <div className="d-flex flex-column flex-sm-row gap-3 justify-content-center align-items-center mx-auto mb-4" style={{ maxWidth: '28rem' }}>
