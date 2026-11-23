@@ -1,0 +1,108 @@
+import { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
+import { updateProfile } from '../../api/collection';
+
+// Step 3 for new accounts: a name collectors see, then where to start.
+export default function Welcome() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, setUser } = useAuthStore();
+  const [name, setName] = useState(user?.name || '');
+  const [city, setCity] = useState(user?.location || '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [step, setStep] = useState(user?.name ? 'start' : 'profile');
+  const [query, setQuery] = useState('');
+
+  const saveProfile = async (event) => {
+    event.preventDefault();
+    if (!name.trim()) {
+      setError('Add a name other collectors will see. You can change it any time.');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      const attrs = await updateProfile({ name: name.trim(), location: city.trim() || null });
+      setUser({ ...user, name: attrs.name ?? name.trim(), location: attrs.location ?? (city.trim() || null) });
+      setStep('start');
+    } catch {
+      setError("We couldn't save that. Try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (step === 'profile') {
+    return (
+      <div className="card-page">
+        <form className="card-page__card" onSubmit={saveProfile} noValidate>
+          <p className="eyebrow" style={{ margin: 0 }}>Step 3 of 3</p>
+          <h1 className="display-m">Who&apos;s collecting?</h1>
+          <p className="body muted" style={{ margin: 0 }}>This is how other collectors see you. Change it any time.</p>
+
+          <div className={`tax-field${error ? ' tax-field--error' : ''}`}>
+            <label className="tax-label" htmlFor="name">Name</label>
+            <input id="name" className="tax-input" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" aria-describedby="name-help" autoFocus />
+            <span id="name-help" className="tax-help" role={error ? 'alert' : undefined}>{error || 'Your name or a collector name.'}</span>
+          </div>
+
+          <div className="tax-field">
+            <label className="tax-label" htmlFor="city">Home city (optional)</label>
+            <input id="city" className="tax-input" value={city} onChange={(e) => setCity(e.target.value)} placeholder="City, State" autoComplete="address-level2" aria-describedby="city-help" />
+            <span id="city-help" className="tax-help">Helps match local trades at shows.</span>
+          </div>
+
+          <p className="body-s muted" style={{ margin: 0 }}>Your collection and what you paid stay private.</p>
+
+          <div className="cluster">
+            <button type="submit" className="tax-btn tax-btn--ink tax-btn--lg" disabled={saving}>{saving ? 'Saving…' : 'Continue'}</button>
+            <button type="button" className="tax-btn tax-btn--text" onClick={() => setStep('start')}>Skip for now</button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container section">
+      <div className="cluster" style={{ alignItems: 'flex-end', gap: 'var(--space-5)', marginBottom: 'var(--space-7)' }}>
+        <h1 className="display-xl">You&apos;re in.</h1>
+        <p className="body-l muted" style={{ margin: '0 0 10px', maxWidth: 520 }}>Now put something on the wall. Pick whichever&apos;s easiest.</p>
+      </div>
+
+      <div className="poster-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
+        <section className="tax-panel stack" style={{ padding: 'var(--space-6)', background: 'var(--accent)', boxShadow: 'var(--shadow-lg)' }}>
+          <span className="label">Fastest</span>
+          <h2 className="display-s" style={{ fontSize: 36 }}>Snap it with your phone</h2>
+          <p style={{ margin: 0 }}>Point the Art Exchange app at a poster and it&apos;s on your wall. Works at the merch table, too.</p>
+        </section>
+
+        <form
+          className="tax-panel stack"
+          style={{ padding: 'var(--space-6)' }}
+          onSubmit={(e) => { e.preventDefault(); navigate(`/gallery?q=${encodeURIComponent(query)}`); }}
+        >
+          <span className="label">Know what you have</span>
+          <h2 className="display-s" style={{ fontSize: 36 }}>Search the archive</h2>
+          <p className="muted" style={{ margin: 0 }}>Find it by band, venue, artist or year and add it in one click.</p>
+          <div className="tax-field">
+            <label className="tax-label" htmlFor="first-search">Search</label>
+            <div style={{ display: 'flex' }}>
+              <input id="first-search" className="tax-input" style={{ flex: 1, minWidth: 0, borderRight: 'none' }} placeholder="e.g. Red Rocks 2022" value={query} onChange={(e) => setQuery(e.target.value)} />
+              <button type="submit" className="tax-btn tax-btn--ink" style={{ minHeight: 52 }}>Search</button>
+            </div>
+          </div>
+        </form>
+
+        <section className="tax-panel stack" style={{ padding: 'var(--space-6)' }}>
+          <span className="label">Just looking</span>
+          <h2 className="display-s" style={{ fontSize: 36 }}>Go to your wall</h2>
+          <p className="muted" style={{ margin: 0 }}>It&apos;s empty for now. Everything you add lands here.</p>
+          <Link to={location.state?.from || '/wall'} className="tax-btn tax-btn--secondary" style={{ alignSelf: 'flex-start' }}>My wall →</Link>
+        </section>
+      </div>
+    </div>
+  );
+}

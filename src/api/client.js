@@ -8,6 +8,7 @@ const client = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    Accept: 'application/json',
   },
 });
 
@@ -29,7 +30,8 @@ client.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    const { refreshToken: currentRefresh } = useAuthStore.getState();
+    if (error.response?.status === 401 && currentRefresh && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {

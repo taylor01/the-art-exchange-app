@@ -1,84 +1,46 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Home from './Home';
+import client from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { searchDoc } from '../test/fixtures';
 
-// These tests cover the account features, which are off by default.
+vi.mock('../api/client');
 vi.mock('../config/features', () => ({ accountsEnabled: true }));
+vi.mock('../store/authStore', () => ({ useAuthStore: vi.fn() }));
 
-// Mock the auth store
-vi.mock('../store/authStore', () => ({
-  useAuthStore: vi.fn(),
-}));
+function renderHome() {
+  return render(<BrowserRouter><Home /></BrowserRouter>);
+}
 
-describe('Home Page', () => {
-  it('renders hero section with main heading', () => {
-    useAuthStore.mockReturnValue({ user: null });
-
-    render(
-      <BrowserRouter>
-        <Home />
-      </BrowserRouter>
-    );
-
-    expect(screen.getByText('Discover')).toBeInTheDocument();
-    expect(screen.getByText('Art Posters')).toBeInTheDocument();
-    expect(screen.getByText("You'll Love")).toBeInTheDocument();
+describe('Home (accounts on)', () => {
+  beforeEach(() => {
+    client.get.mockResolvedValue({ data: searchDoc() });
   });
 
-  it('shows guest CTAs when user is not logged in', () => {
+  it('leads with the headline', () => {
     useAuthStore.mockReturnValue({ user: null });
-
-    render(
-      <BrowserRouter>
-        <Home />
-      </BrowserRouter>
-    );
-
-    expect(screen.getByText('Start Collecting Free')).toBeInTheDocument();
-    expect(screen.getByText('Sign In')).toBeInTheDocument();
-    expect(screen.getByText(/of collectors worldwide/i)).toBeInTheDocument();
+    renderHome();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/catalog\s*the wall/i);
   });
 
-  it('shows authenticated CTAs when user is logged in', () => {
-    useAuthStore.mockReturnValue({
-      user: { id: 1, email: 'test@example.com' },
-    });
-
-    render(
-      <BrowserRouter>
-        <Home />
-      </BrowserRouter>
-    );
-
-    expect(screen.getByText('View My Profile')).toBeInTheDocument();
-    expect(screen.getByText('Browse Collection')).toBeInTheDocument();
+  it('invites guests to start a wall', () => {
+    useAuthStore.mockReturnValue({ user: null });
+    renderHome();
+    expect(screen.getByRole('link', { name: /start your wall/i })).toHaveAttribute('href', '/join');
   });
 
-  it('renders feature cards', () => {
-    useAuthStore.mockReturnValue({ user: null });
-
-    render(
-      <BrowserRouter>
-        <Home />
-      </BrowserRouter>
-    );
-
-    expect(screen.getByText('Track Collections')).toBeInTheDocument();
-    expect(screen.getByText('Discover Art')).toBeInTheDocument();
-    expect(screen.getByText('Connect & Trade')).toBeInTheDocument();
+  it('sends signed-in collectors to their wall', () => {
+    useAuthStore.mockReturnValue({ user: { id: 1 } });
+    renderHome();
+    expect(screen.getByRole('link', { name: /go to my wall/i })).toHaveAttribute('href', '/wall');
   });
 
-  it('renders features section heading', () => {
+  it('shows recently added posters', async () => {
     useAuthStore.mockReturnValue({ user: null });
-
-    render(
-      <BrowserRouter>
-        <Home />
-      </BrowserRouter>
-    );
-
-    expect(screen.getByText('Why Collectors Choose Us')).toBeInTheDocument();
+    renderHome();
+    expect(await screen.findByText('Night One')).toBeInTheDocument();
+    expect(client.get).toHaveBeenCalledWith('/posters/search', expect.objectContaining({ params: expect.objectContaining({ sort: '-created_at' }) }));
   });
 });

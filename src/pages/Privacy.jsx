@@ -1,10 +1,8 @@
 export default function Privacy() {
   return (
-    <div className="container py-5">
-      <div className="row">
-        <div className="col-lg-8 mx-auto">
+    <article className="prose">
           <h1 className="mb-4">Privacy Policy</h1>
-          <p className="text-muted mb-5">
+          <p className="muted">
             <strong>Last Updated:</strong> {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
           </p>
 
@@ -187,8 +185,6 @@ export default function Privacy() {
               <li>Email: <a href="mailto:hello@theartexch.com">hello@theartexch.com</a></li>
             </ul>
           </section>
-        </div>
-      </div>
-    </div>
+    </article>
   );
 }

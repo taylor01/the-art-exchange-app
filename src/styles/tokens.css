@@ -1,0 +1,67 @@
+/* The Art Exchange design tokens — generated from the design system's tokens.json. Edit the design system, then regenerate. */
+:root,
+[data-theme="paper"] {
+  --paper: #F1ECE2;
+  --paper-deep: #E7E0D3;
+  --card: #FFFFFF;
+  --ink: #141414;
+  --ink-muted: #3A3732;
+  --accent: #FF5C93;
+  --on-accent: #141414;
+  --signal-hunt: #FFD23F;
+  --signal-match: #4FD1C5;
+  --focus: #1F4FD8;
+  --error: #C8102E;
+  --shadow-sm: 3px 3px 0 #141414;
+  --shadow-md: 6px 6px 0 #141414;
+  --shadow-lg: 10px 10px 0 #141414;
+  --shadow-accent: 6px 6px 0 #FF5C93;
+}
+
+[data-theme="night"] {
+  --paper: #141414;
+  --paper-deep: #1F1D1B;
+  --card: #26231F;
+  --ink: #F1ECE2;
+  --ink-muted: #C9C2B6;
+  --accent: #FF5C93;
+  --on-accent: #141414;
+  --signal-hunt: #FFD23F;
+  --signal-match: #4FD1C5;
+  --focus: #9DB4FF;
+  --error: #FF6B6B;
+  --shadow-sm: 3px 3px 0 #6E675C;
+  --shadow-md: 6px 6px 0 #6E675C;
+  --shadow-lg: 10px 10px 0 #6E675C;
+}
+
+:root {
+  --font-display: Anton, Impact, "Arial Narrow", sans-serif;
+  --font-sans: "Space Grotesk", system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --radius-none: 0px;
+  --radius-disc: 50%;
+  --border-heavy: 3px;
+  --border-light: 2px;
+  --border-hair: 1px;
+  --content-max: 1280px;
+}
+
+.display-xl { font-family: var(--font-display); font-size: 112px; line-height: 0.92; font-weight: 400; text-transform: uppercase; }
+.display-l { font-family: var(--font-display); font-size: 64px; line-height: 0.95; font-weight: 400; text-transform: uppercase; }
+.display-m { font-family: var(--font-display); font-size: 44px; line-height: 1; font-weight: 400; text-transform: uppercase; }
+.display-s { font-family: var(--font-display); font-size: 28px; line-height: 1; font-weight: 400; text-transform: uppercase; }
+.body-l { font-family: var(--font-sans); font-size: 20px; line-height: 30px; font-weight: 400; }
+.body { font-family: var(--font-sans); font-size: 16px; line-height: 24px; font-weight: 400; }
+.body-strong { font-family: var(--font-sans); font-size: 16px; line-height: 24px; font-weight: 700; }
+.body-s { font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 400; }
+.label { font-family: var(--font-mono); font-size: 12px; line-height: 16px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.meta { font-family: var(--font-mono); font-size: 11px; line-height: 14px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
