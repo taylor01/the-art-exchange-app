@@ -6,6 +6,22 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Settings page (`/settings`, from the initials in the header): name, city, handle and
+  whether the Hunting and For sale lists are public. Shows exactly what visitors will see
+  before a list goes public, and warns that shared links stop working when one goes
+  private. Needs API #79.
+- Handle field with a live check while typing (format checked locally first, then
+  `GET /users/handle_available` after 400 ms), the reason a handle won't work, and
+  tappable suggestions. Disabled with the next allowed date during the 30-day wait.
+- The welcome step shows the generated handle (keep it or change it) and the two list
+  toggles, both private by default.
+- Public collector page (`/c/:handle`) showing only the lists that collector made public.
+  An old handle still opens the page and the URL switches to the current one.
+- On a copy listed for sale, a note when the For sale list is private: buyers won't see it
+  until the list is public.
+
 ## [0.2.0] - 2026-11-23
 
 ### Changed

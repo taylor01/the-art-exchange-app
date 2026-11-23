@@ -12,6 +12,8 @@ import Copy from './pages/wall/Copy';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
 import About from './pages/About';
+import Settings from './pages/Settings';
+import Collector from './pages/Collector';
 import { useAuthStore } from './store/authStore';
 import { accountsEnabled } from './config/features';
 
@@ -33,6 +35,8 @@ function App() {
               <Route path="/welcome" element={<RequireAuth><Welcome /></RequireAuth>} />
               <Route path="/wall" element={<RequireAuth><Wall /></RequireAuth>} />
               <Route path="/wall/:id" element={<RequireAuth><Copy /></RequireAuth>} />
+              <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+              <Route path="/c/:handle" element={<Collector />} />
               <Route path="/login" element={<Navigate to="/signin" replace />} />
               <Route path="/signup" element={<Navigate to="/join" replace />} />
               <Route path="/collection" element={<Navigate to="/wall" replace />} />

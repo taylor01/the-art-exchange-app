@@ -87,3 +87,77 @@ export async function updateProfile(attrs) {
   const { data } = await client.patch('/users/profile', { user: attrs });
   return data.data?.attributes || {};
 }
+
+// GET /users/profile -> the signed-in collector, including handle and list visibility
+export async function getProfile() {
+  const { data } = await client.get('/users/profile');
+  return toProfile(data.data);
+}
+
+// PATCH /users/profile for handle and list visibility; returns the saved profile.
+// attrs: { name, location, handle, for_sale_public, wanted_public }
+export async function saveProfile(attrs) {
+  const { data } = await client.patch('/users/profile', { user: attrs });
+  return toProfile(data.data);
+}
+
+function toProfile(resource) {
+  const a = resource?.attributes || {};
+  return {
+    id: resource?.id,
+    email: a.email,
+    name: a.name,
+    displayName: a.display_name,
+    location: a.location,
+    handle: a.handle,
+    handleChangeableAt: a.handle_changeable_at,
+    forSalePublic: Boolean(a.for_sale_public),
+    wantedPublic: Boolean(a.wanted_public),
+  };
+}
+
+// The first error detail from a JSON:API error response, if any.
+export function apiErrorDetail(error) {
+  return error?.response?.data?.errors?.[0]?.detail || null;
+}
+
+// GET /users/handle_available?handle= -> { available, reason, suggestions }
+export async function checkHandle(handle) {
+  const { data } = await client.get('/users/handle_available', { params: { handle } });
+  return { available: Boolean(data.available), reason: data.reason || null, suggestions: data.suggestions || [] };
+}
+
+// Public collector page (no auth). `id` is the collector's current handle.
+export async function getCollector(handle) {
+  const { data } = await client.get(`/collectors/${encodeURIComponent(handle)}`);
+  const a = data.data.attributes || {};
+  return {
+    handle: data.data.id,
+    displayName: a.display_name,
+    location: a.location,
+    publicLists: a.public_lists || [],
+    forSaleCount: a.for_sale_count,
+    wantedCount: a.wanted_count,
+  };
+}
+
+// GET /collectors/:handle/for_sale | /wanted
+export async function getCollectorList(handle, list, page = 1) {
+  const { data } = await client.get(`/collectors/${encodeURIComponent(handle)}/${list}`, {
+    params: { page, per_page: 40, include: 'poster.band,poster.venue,poster.artists' },
+  });
+  const index = indexIncluded(data.included);
+  return {
+    copies: (data.data || []).map((r) => {
+      const poster = related(r, 'poster', index);
+      return {
+        id: r.id,
+        editionNumber: r.attributes.edition_number,
+        condition: r.attributes.condition,
+        askingPrice: r.attributes.asking_price_dollars ?? null,
+        poster: poster ? toPoster(poster, index) : null,
+      };
+    }),
+    meta: data.meta || {},
+  };
+}
