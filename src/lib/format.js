@@ -60,3 +60,13 @@ export function toCents(value) {
   if (Number.isNaN(n) || n < 0) return null;
   return Math.round(n * 100);
 }
+
+export const HANDOFFS = [
+  { value: 'ships', label: 'Ships' },
+  { value: 'meets_at_shows', label: 'Meets at shows' },
+  { value: 'either', label: 'Ships or meets at shows' },
+];
+
+export function handoffLabel(value) {
+  return HANDOFFS.find((h) => h.value === value)?.label ?? null;
+}

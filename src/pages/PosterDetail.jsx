@@ -8,6 +8,7 @@ import { accountsEnabled } from '../config/features';
 import PosterArt from '../components/PosterArt';
 import PosterCard from '../components/PosterCard';
 import Switch from '../components/Switch';
+import PriceSection from '../components/PriceSection';
 import { EmptyState, ErrorNote, Loading } from '../components/Feedback';
 import { conditionLabel, formatDate, formatMoney } from '../lib/format';
 
@@ -124,20 +125,7 @@ function PosterPage({ poster, backTo }) {
         </section>
       )}
 
-      <section id="prices" className="section--deep">
-        <div className="container section">
-          <div className="section__head">
-            <div>
-              <h2 className="section__title">Prices</h2>
-              <p className="section__sub">What collectors paid in completed trades here. Not an appraisal.</p>
-            </div>
-          </div>
-          <EmptyState title="No sales yet">
-            Price history starts with the first trade between collectors on The Art Exchange.
-            {poster.priceDollars ? ` It sold for ${formatMoney(poster.priceDollars)} originally.` : ''}
-          </EmptyState>
-        </div>
-      </section>
+      <PriceSection poster={poster} />
 
       {showId && (
         <section id="show" className="container section">

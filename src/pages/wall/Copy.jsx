@@ -5,7 +5,7 @@ import { useApi } from '../../hooks/useApi';
 import PosterArt from '../../components/PosterArt';
 import Switch from '../../components/Switch';
 import { ErrorNote, Loading } from '../../components/Feedback';
-import { CONDITIONS, toCents } from '../../lib/format';
+import { CONDITIONS, HANDOFFS, toCents } from '../../lib/format';
 
 // One poster on the collector's wall: edition, condition, what they paid,
 // and whether it's listed for sale.
@@ -38,6 +38,7 @@ function CopyForm({ copy }) {
     notes: copy.notes || '',
     forSale: copy.forSale,
     askingPrice: copy.askingPrice ?? '',
+    handoff: copy.handoff || '',
   });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState(null);
@@ -59,6 +60,7 @@ function CopyForm({ copy }) {
         notes: next.notes.trim() || null,
         for_sale: next.forSale,
         asking_price_cents: next.forSale ? toCents(next.askingPrice) : null,
+        handoff: next.handoff || null,
       });
       setMessage({ kind: 'ok', text: 'Saved.' });
     } catch {
@@ -120,9 +122,18 @@ function CopyForm({ copy }) {
             )}
             {form.forSale && (
               <div className="tax-panel__body" style={{ borderTop: 'var(--border-heavy) solid var(--ink)' }}>
-                <div className="tax-field" style={{ maxWidth: 260 }}>
-                  <label className="tax-label" htmlFor="asking">Asking price (optional)</label>
-                  <input id="asking" className="tax-input" inputMode="decimal" placeholder="$" value={form.askingPrice} onChange={set('askingPrice')} />
+                <div className="cluster" style={{ alignItems: 'flex-end' }}>
+                  <div className="tax-field" style={{ flex: '1 1 200px' }}>
+                    <label className="tax-label" htmlFor="asking">Asking price (optional)</label>
+                    <input id="asking" className="tax-input" inputMode="decimal" placeholder="$" value={form.askingPrice} onChange={set('askingPrice')} />
+                  </div>
+                  <div className="tax-field" style={{ flex: '1 1 220px' }}>
+                    <label className="tax-label" htmlFor="handoff">How you hand it over</label>
+                    <select id="handoff" className="tax-select" value={form.handoff} onChange={set('handoff')}>
+                      <option value="">Not set</option>
+                      {HANDOFFS.map((h) => <option key={h.value} value={h.value}>{h.label}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
             )}

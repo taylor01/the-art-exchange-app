@@ -6,6 +6,18 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Poster page **Prices**: last sale, 12-month median and range, value against the
+  release price, and a bar per confirmed sale (`GET /posters/:id/price_history`), beside
+  **For sale now** (`GET /posters/:id/listings`) with an Ask form (message and an optional
+  offer). Needs API #80 and #82.
+- My Wall **Buying & selling** tab: inquiries about your copies and ones you sent, with
+  buttons from the API's `allowed_transitions`; the other collector's email once accepted;
+  recording a trade (price, plus what happens to your wall); confirming a trade by
+  sending the recorded price back; and completed trades. Closed inquiries say why.
+- "How you hand it over" (ships / meets at shows / either) on a copy listed for sale.
+
 ## [0.3.0] - 2026-11-23
 
 ### Added

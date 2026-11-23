@@ -72,3 +72,24 @@ export const setlistDoc = {
 };
 
 export const recordingsDoc = { data: [] };
+
+export const listingsDoc = {
+  data: [
+    { id: '91', type: 'listing', attributes: { edition_number: '112/200', condition: 'near_mint', handoff: 'ships', asking_price_dollars: 195, seller_handle: 'gorgeous_g', listed_at: '2026-11-01T00:00:00Z' } },
+  ],
+  meta: { total_count: 1 },
+};
+
+export const historyDoc = {
+  data: {
+    id: '123',
+    type: 'price_history',
+    attributes: {
+      points: [
+        { date: '2026-06-01', price_dollars: 160, edition_label: '40/200' },
+        { date: '2026-10-01', price_dollars: 185, edition_label: '88/200' },
+      ],
+      summary: { last_sale: { date: '2026-10-01', price_dollars: 185 }, median_12m: 172.5, low_12m: 160, high_12m: 185, count_12m: 2, count_all: 2, release_price_dollars: 40 },
+    },
+  },
+};

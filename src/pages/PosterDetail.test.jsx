@@ -4,7 +4,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import PosterDetail from './PosterDetail';
 import client from '../api/client';
 import { useAuthStore } from '../store/authStore';
-import { posterDoc, recordingsDoc, searchDoc, setlistDoc, showDoc } from '../test/fixtures';
+import { historyDoc, listingsDoc, posterDoc, recordingsDoc, searchDoc, setlistDoc, showDoc } from '../test/fixtures';
 
 vi.mock('../api/client');
 vi.mock('../config/features', () => ({ accountsEnabled: true }));
@@ -13,6 +13,8 @@ vi.mock('../store/authStore', () => ({ useAuthStore: vi.fn() }));
 function routeGets({ copies = [] } = {}) {
   client.get.mockImplementation((url) => {
     if (url.startsWith('/posters/search')) return Promise.resolve({ data: searchDoc() });
+    if (url.endsWith('/listings')) return Promise.resolve({ data: listingsDoc });
+    if (url.endsWith('/price_history')) return Promise.resolve({ data: historyDoc });
     if (url.startsWith('/posters/')) return Promise.resolve({ data: posterDoc });
     if (url.endsWith('/setlist_songs')) return Promise.resolve({ data: setlistDoc });
     if (url.endsWith('/recordings')) return Promise.resolve({ data: recordingsDoc });
@@ -79,6 +81,25 @@ describe('PosterDetail', () => {
     renderPoster();
     expect(await screen.findByText('On your wall')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /manage your copy/i })).toHaveAttribute('href', '/wall/77');
+  });
+
+  it('shows price history and copies for sale', async () => {
+    renderPoster();
+    expect(await screen.findByText('Last sale')).toBeInTheDocument();
+    expect(screen.getAllByText('$185').length).toBeGreaterThan(0);
+    expect(screen.getByText('4.6×')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '@gorgeous_g' })).toHaveAttribute('href', '/c/gorgeous_g');
+  });
+
+  it('sends a signed-in collector\'s question to the seller', async () => {
+    useAuthStore.mockReturnValue({ user: { id: 1, handle: 'robin' } });
+    client.post.mockResolvedValue({ data: { data: { id: '5', type: 'inquiry', attributes: { status: 'pending' } } } });
+    renderPoster();
+    fireEvent.click(await screen.findByRole('button', { name: 'Ask' }));
+    fireEvent.change(screen.getByLabelText('Your offer (optional)'), { target: { value: '$180' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Ask @gorgeous_g' }));
+    await waitFor(() => expect(client.post).toHaveBeenCalledWith('/user_posters/91/inquiries', { inquiry: { message: null, offer_dollars: '180' } }));
+    expect(await screen.findByText(/sent\. @gorgeous_g will see it/i)).toBeInTheDocument();
   });
 
   it('says when a poster does not exist', async () => {

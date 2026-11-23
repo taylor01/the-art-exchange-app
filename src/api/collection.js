@@ -16,6 +16,7 @@ function toCopy(resource, index) {
     purchaseDate: a.purchase_date,
     purchasePrice: a.purchase_price_dollars,
     askingPrice: a.asking_price_dollars,
+    handoff: a.handoff || null,
     imageUrls: a.image_urls || [],
     poster: poster ? toPoster(poster, index) : null,
   };

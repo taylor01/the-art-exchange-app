@@ -4,6 +4,7 @@ import { useApi } from '../../hooks/useApi';
 import PosterCard from '../../components/PosterCard';
 import { EmptyState, ErrorNote, Loading } from '../../components/Feedback';
 import { conditionLabel, dateParts } from '../../lib/format';
+import Deals from './Deals';
 
 const FILTERS = [
   { key: 'owned', label: 'On my wall' },
@@ -14,10 +15,10 @@ const FILTERS = [
 // The collector's wall: posters (owned, for sale, hunting) and shows.
 export default function Wall() {
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'shows' ? 'shows' : 'posters';
+  const tab = ['shows', 'deals'].includes(params.get('tab')) ? params.get('tab') : 'posters';
   const status = FILTERS.some((f) => f.key === params.get('status')) ? params.get('status') : 'owned';
 
-  const setTab = (next) => setParams(next === 'shows' ? { tab: 'shows' } : {});
+  const setTab = (next) => setParams(next === 'posters' ? {} : { tab: next });
   const setStatus = (next) => setParams(next === 'owned' ? {} : { status: next });
 
   return (
@@ -27,12 +28,15 @@ export default function Wall() {
         <Link to="/gallery" className="tax-btn tax-btn--primary">Add a poster</Link>
       </div>
 
-      <div className="tax-tabs" role="tablist" aria-label="Wall view" style={{ maxWidth: 420, marginBottom: 'var(--space-5)' }}>
+      <div className="tax-tabs" role="tablist" aria-label="Wall view" style={{ maxWidth: 560, marginBottom: 'var(--space-5)' }}>
         <button type="button" className="tax-tab" role="tab" aria-selected={tab === 'posters'} onClick={() => setTab('posters')}>Posters</button>
         <button type="button" className="tax-tab" role="tab" aria-selected={tab === 'shows'} onClick={() => setTab('shows')}>Shows</button>
+        <button type="button" className="tax-tab" role="tab" aria-selected={tab === 'deals'} onClick={() => setTab('deals')}>Buying &amp; selling</button>
       </div>
 
-      {tab === 'posters' ? <Posters status={status} setStatus={setStatus} /> : <Shows />}
+      {tab === 'posters' && <Posters status={status} setStatus={setStatus} />}
+      {tab === 'shows' && <Shows />}
+      {tab === 'deals' && <Deals />}
     </div>
   );
 }
