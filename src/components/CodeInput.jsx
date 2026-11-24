@@ -1,8 +1,7 @@
 import { useRef } from 'react';
+import { CODE_LENGTH as LENGTH } from '../config/auth';
 
-const LENGTH = 6;
-
-// Six boxes for the emailed code. Typing moves forward, Backspace moves back,
+// One box per digit of the emailed code, in two groups of four like the email. Typing moves forward, Backspace moves back,
 // and pasting the whole code fills every box.
 export default function CodeInput({ value, onChange, onComplete, disabled, label = 'Code' }) {
   const refs = useRef([]);

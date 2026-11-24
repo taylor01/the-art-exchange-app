@@ -47,13 +47,13 @@ describe('authStore', () => {
   it('verifyCode stores tokens and the user, and clears the pending email', async () => {
     useAuthStore.setState({ pendingEmail: 'me@example.com' });
     fetch.mockReturnValue(reply(200, { access_token: 'acc', refresh_token: 'ref', user: { id: 4, email: 'me@example.com', name: null } }));
-    const result = await useAuthStore.getState().verifyCode('481 207');
+    const result = await useAuthStore.getState().verifyCode('4812 0736');
     expect(result.success).toBe(true);
-    expect(fetch).toHaveBeenCalledWith(expect.stringMatching(/\/auth\/verify$/), expect.objectContaining({ body: JSON.stringify({ email: 'me@example.com', code: '481207' }) }));
+    expect(fetch).toHaveBeenCalledWith(expect.stringMatching(/\/auth\/verify$/), expect.objectContaining({ body: JSON.stringify({ email: 'me@example.com', code: '48120736' }) }));
     expect(useAuthStore.getState()).toMatchObject({ accessToken: 'acc', refreshToken: 'ref', pendingEmail: null, user: { id: 4 } });
   });
 
-  it('verifyCode needs all six digits', async () => {
+  it('verifyCode needs all eight digits', async () => {
     useAuthStore.setState({ pendingEmail: 'me@example.com' });
     const result = await useAuthStore.getState().verifyCode('123');
     expect(result.success).toBe(false);
@@ -63,7 +63,7 @@ describe('authStore', () => {
   it('verifyCode reports a wrong code', async () => {
     useAuthStore.setState({ pendingEmail: 'me@example.com' });
     fetch.mockReturnValue(reply(401, { error: 'Invalid or expired code' }));
-    const result = await useAuthStore.getState().verifyCode('000000');
+    const result = await useAuthStore.getState().verifyCode('00000000');
     expect(result.success).toBe(false);
     expect(useAuthStore.getState().accessToken).toBeNull();
   });

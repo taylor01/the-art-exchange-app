@@ -12,7 +12,7 @@ const COPY = {
   },
   signin: {
     title: 'Welcome back',
-    lead: "Enter your email and we'll send you a 6-digit code. No password.",
+    lead: "Enter your email and we'll send you an 8-digit code. No password.",
     slogan: ['Your wall', 'missed you.'],
     other: { text: 'New here?', link: '/join', label: 'Start your wall' },
   },
@@ -58,7 +58,7 @@ export default function EmailStart({ mode = 'signin' }) {
               autoFocus
             />
             <span id="email-help" className="tax-help" role={error ? 'alert' : undefined}>
-              {error || "No password to remember. We'll email you a 6-digit code."}
+              {error || "No password to remember. We'll email you an 8-digit code."}
             </span>
           </div>
 

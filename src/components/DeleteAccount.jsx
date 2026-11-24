@@ -4,6 +4,7 @@ import { apiErrorDetail, deleteAccount, requestAccountCode } from '../api/collec
 import { useAuthStore } from '../store/authStore';
 import { useUnreadStore } from '../store/unreadStore';
 import CodeInput from './CodeInput';
+import { CODE_LENGTH } from '../config/auth';
 
 // The bottom of Settings. Says plainly what goes and what stays, then asks
 // for a fresh code from your email before deleting anything.
@@ -30,7 +31,7 @@ export default function DeleteAccount({ email }) {
   };
 
   const remove = async (value = code) => {
-    if (value.length !== 6 || busy) return;
+    if (value.length !== CODE_LENGTH || busy) return;
     setBusy(true);
     setError('');
     try {
@@ -70,10 +71,10 @@ export default function DeleteAccount({ email }) {
           )}
           {step === 'code' && (
             <div className="stack">
-              <p style={{ margin: 0 }}>Enter the 6-digit code we sent to {email}.</p>
+              <p style={{ margin: 0 }}>Enter the {CODE_LENGTH}-digit code we sent to {email}.</p>
               <CodeInput value={code} onChange={(v) => { setCode(v); setError(''); }} disabled={busy} label="Code to delete your account" />
               <div className="cluster">
-                <button type="button" className="tax-btn tax-btn--ink" style={{ background: 'var(--error)', borderColor: 'var(--error)' }} disabled={busy || code.length !== 6} onClick={() => remove()}>
+                <button type="button" className="tax-btn tax-btn--ink" style={{ background: 'var(--error)', borderColor: 'var(--error)' }} disabled={busy || code.length !== CODE_LENGTH} onClick={() => remove()}>
                   {busy ? 'Deleting…' : 'Delete my account'}
                 </button>
                 <button type="button" className="tax-btn tax-btn--text" onClick={() => { setStep('closed'); setCode(''); setError(''); }}>Keep my account</button>
