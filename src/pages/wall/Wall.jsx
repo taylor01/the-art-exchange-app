@@ -2,7 +2,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { listCopies, listShows } from '../../api/collection';
 import { useApi } from '../../hooks/useApi';
 import PosterCard from '../../components/PosterCard';
-import { EmptyState, ErrorNote, Loading } from '../../components/Feedback';
+import { EmptyState, ErrorNote, Loading, PosterGridSkeleton } from '../../components/Feedback';
 import { conditionLabel, dateParts } from '../../lib/format';
 import Deals from './Deals';
 
@@ -57,7 +57,7 @@ function Posters({ status, setStatus }) {
       </div>
 
       {error && <ErrorNote onRetry={reload}>We couldn&apos;t load your wall.</ErrorNote>}
-      {loading && <Loading label="Loading your wall" />}
+      {loading && <PosterGridSkeleton count={8} label="Loading your wall" />}
       {!loading && !error && copies.length === 0 && <EmptyFor status={status} />}
       {!loading && !error && copies.length > 0 && (
         <>

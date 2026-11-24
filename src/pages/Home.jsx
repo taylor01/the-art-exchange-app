@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { accountsEnabled } from '../config/features';
 import PosterCard from '../components/PosterCard';
 import PosterArt from '../components/PosterArt';
-import { ErrorNote, Loading } from '../components/Feedback';
+import { ErrorNote, PosterGridSkeleton } from '../components/Feedback';
 
 export default function Home() {
   const { user } = useAuthStore();
@@ -45,7 +45,7 @@ export default function Home() {
             <Link to="/gallery" style={{ fontWeight: 700 }}>See the whole archive →</Link>
           </div>
           {error && <ErrorNote onRetry={reload}>We couldn&apos;t load recent posters.</ErrorNote>}
-          {loading && <Loading label="Loading posters" />}
+          {loading && <PosterGridSkeleton count={8} label="Loading posters" />}
           {!loading && !error && (
             <div className="poster-grid">
               {posters.map((poster) => <PosterCard key={poster.id} poster={poster} />)}

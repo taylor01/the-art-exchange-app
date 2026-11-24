@@ -6,6 +6,14 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+### Changed
+
+- Loading looks like it's doing something. Poster grids (the archive, the home page and
+  My wall) show placeholder posters in the grid's own shape, with a pink pass sweeping
+  down each one in turn, so the page doesn't jump when the posters arrive. Everywhere else
+  the small loader is three ink passes stamping down in turn. Both hold still for people
+  who ask for reduced motion.
+
 ## [0.5.1] - 2026-11-23
 
 ### Fixed
