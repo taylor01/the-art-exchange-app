@@ -133,7 +133,8 @@ describe('PosterDetail', () => {
     const links = within(section).getAllByRole('link');
     expect(links.map((a) => a.getAttribute('href'))).toEqual(['/poster/piece-123', '/poster/piece-124', '/poster/piece-125']);
     expect(links[0]).toHaveAttribute('aria-current', 'page');
-    expect(within(links[2]).getByText('Hunting')).toBeInTheDocument();
+    expect(await within(links[2]).findByText('Hunting')).toBeInTheDocument();
+    expect(within(section).getByText('You have 0 of 3')).toBeInTheDocument();
     expect(client.get).toHaveBeenCalledWith('/posters/search', { params: { include: 'band,venue,show', series_ids: ['4'], per_page: 100 } });
   });
 
