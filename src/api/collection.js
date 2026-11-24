@@ -1,6 +1,6 @@
 // The signed-in collector's wall (user_posters), shows and profile.
 import client from './client';
-import { indexIncluded, related } from './jsonapi';
+import { indexIncluded, related, relatedId } from './jsonapi';
 import { toPoster } from './catalog';
 
 function toCopy(resource, index) {
@@ -18,6 +18,7 @@ function toCopy(resource, index) {
     askingPrice: a.asking_price_dollars,
     handoff: a.handoff || null,
     imageUrls: a.image_urls || [],
+    posterId: relatedId(resource, 'poster'),
     poster: poster ? toPoster(poster, index) : null,
   };
 }
