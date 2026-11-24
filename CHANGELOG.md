@@ -6,6 +6,16 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-11-23
+
+### Fixed
+
+- Signing in, joining and deleting an account were impossible: the code boxes took 6 digits
+  and the API sends 8 (`SignInCode::DIGITS`). The boxes, the checks and the wording now use
+  one setting, `CODE_LENGTH` in `src/config/auth.js`, set to 8. The boxes are in two groups
+  of four, like the code in the email ("1234 5678"), and pasting the code with its space
+  still fills them all.
+
 ## [0.5.0] - 2026-11-23
 
 ### Added

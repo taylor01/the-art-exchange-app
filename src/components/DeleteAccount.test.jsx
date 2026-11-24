@@ -22,7 +22,7 @@ function renderIt() {
   );
 }
 
-const typeCode = (value) => fireEvent.change(screen.getByLabelText('Digit 1 of 6'), { target: { value } });
+const typeCode = (value) => fireEvent.change(screen.getByLabelText('Digit 1 of 8'), { target: { value } });
 
 describe('DeleteAccount', () => {
   beforeEach(() => {
@@ -40,7 +40,7 @@ describe('DeleteAccount', () => {
     expect(client.post).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Email a code to robin@example.com' }));
     await waitFor(() => expect(client.post).toHaveBeenCalledWith('/auth/code', { email: 'robin@example.com' }));
-    expect(await screen.findByText(/enter the 6-digit code/i)).toBeInTheDocument();
+    expect(await screen.findByText(/enter the 8-digit code/i)).toBeInTheDocument();
   });
 
   it('deletes only after the code is entered and the button pressed, then signs out', async () => {
@@ -48,11 +48,11 @@ describe('DeleteAccount', () => {
     renderIt();
     fireEvent.click(screen.getByRole('button', { name: 'Delete my account…' }));
     fireEvent.click(screen.getByRole('button', { name: 'Email a code to robin@example.com' }));
-    await screen.findByText(/enter the 6-digit code/i);
-    typeCode('123456');
+    await screen.findByText(/enter the 8-digit code/i);
+    typeCode('12345678');
     expect(client.delete).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Delete my account' }));
-    await waitFor(() => expect(client.delete).toHaveBeenCalledWith('/users/account', { data: { code: '123456' } }));
+    await waitFor(() => expect(client.delete).toHaveBeenCalledWith('/users/account', { data: { code: '12345678' } }));
     expect(await screen.findByText('Home page')).toBeInTheDocument();
     expect(setUser).toHaveBeenCalledWith(null);
     expect(setTokens).toHaveBeenCalledWith(null, null);
@@ -63,8 +63,8 @@ describe('DeleteAccount', () => {
     renderIt();
     fireEvent.click(screen.getByRole('button', { name: 'Delete my account…' }));
     fireEvent.click(screen.getByRole('button', { name: 'Email a code to robin@example.com' }));
-    await screen.findByText(/enter the 6-digit code/i);
-    typeCode('000000');
+    await screen.findByText(/enter the 8-digit code/i);
+    typeCode('00000000');
     fireEvent.click(screen.getByRole('button', { name: 'Delete my account' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('Invalid or expired code');
     expect(setUser).not.toHaveBeenCalled();

@@ -60,8 +60,10 @@
 .tax-textarea { min-height: 96px; border: var(--border-heavy) solid var(--ink); background: var(--card); color: var(--ink); padding: 12px 14px; font: inherit; font-size: 16px; box-sizing: border-box; resize: vertical; }
 
 /* Six-box code entry */
-.tax-code { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--space-2); }
-.tax-code input { height: 72px; width: 100%; box-sizing: border-box; border: var(--border-heavy) solid var(--ink); border-radius: var(--radius-none); background: var(--card); color: var(--ink); text-align: center; font-family: var(--font-display); font-size: 36px; padding: 0; }
+.tax-code { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: var(--space-2); max-width: 560px; }
+.tax-code input:nth-child(4) { margin-right: var(--space-3); }
+.tax-code input { height: 64px; width: 100%; min-width: 0; box-sizing: border-box; border: var(--border-heavy) solid var(--ink); border-radius: var(--radius-none); background: var(--card); color: var(--ink); text-align: center; font-family: var(--font-display); font-size: 30px; padding: 0; }
+@media (max-width: 480px) { .tax-code { gap: 4px; } .tax-code input { height: 52px; font-size: 22px; } .tax-code input:nth-child(4) { margin-right: var(--space-2); } }
 .tax-code input:focus { outline: none; background: var(--accent); color: var(--on-accent); box-shadow: var(--shadow-sm); }
 .tax-code input:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 

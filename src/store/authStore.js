@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { CODE_LENGTH } from '../config/auth';
 
 // Passwordless sign-in against the API:
-//   POST /auth/code   { email }        -> 202, a 6-digit code is emailed
+//   POST /auth/code   { email }        -> 202, an 8-digit code is emailed
 //   POST /auth/verify { email, code }  -> { access_token, refresh_token, user }
 // An address with no account gets one on its first verified code, so
 // joining and signing in are the same two calls.
@@ -79,8 +80,8 @@ export const useAuthStore = create(
           set({ error });
           return { success: false, error };
         }
-        if (digits.length !== 6) {
-          const error = 'Enter all 6 digits of the code.';
+        if (digits.length !== CODE_LENGTH) {
+          const error = `Enter all ${CODE_LENGTH} digits of the code.`;
           set({ error });
           return { success: false, error };
         }

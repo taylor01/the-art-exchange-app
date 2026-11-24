@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import CodeInput from '../../components/CodeInput';
+import { CODE_LENGTH } from '../../config/auth';
 
 const RESEND_AFTER = 30;
 
@@ -55,7 +56,7 @@ export default function Verify() {
         {mode === 'join' && <p className="eyebrow" style={{ margin: 0 }}>Step 2 of 3</p>}
         <h1 className="display-m">Enter the code</h1>
         <p className="body muted" style={{ margin: 0 }}>
-          We sent a 6-digit code to <strong style={{ color: 'var(--ink)' }}>{email}</strong>.{' '}
+          We sent an {CODE_LENGTH}-digit code to <strong style={{ color: 'var(--ink)' }}>{email}</strong>.{' '}
           <Link to={mode === 'join' ? '/join' : '/signin'} onClick={clearError} style={{ fontWeight: 700 }}>Change</Link>
         </p>
 
@@ -70,7 +71,7 @@ export default function Verify() {
         {error && <div className="tax-alert tax-alert--error" role="alert">{error}</div>}
         {resent && !error && <div className="tax-alert" role="status">New code sent. Any code from the last 10 minutes works.</div>}
 
-        <button type="submit" className="tax-btn tax-btn--ink tax-btn--lg" disabled={isLoading || code.length < 6}>
+        <button type="submit" className="tax-btn tax-btn--ink tax-btn--lg" disabled={isLoading || code.length < CODE_LENGTH}>
           {isLoading ? 'Checking…' : mode === 'join' ? 'Verify' : 'Sign in'}
         </button>
 
