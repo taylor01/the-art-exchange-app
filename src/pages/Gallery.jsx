@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { searchPosters } from '../api/catalog';
 import { useApi } from '../hooks/useApi';
 import PosterCard from '../components/PosterCard';
-import { EmptyState, ErrorNote, Loading } from '../components/Feedback';
+import { EmptyState, ErrorNote, PosterGridSkeleton } from '../components/Feedback';
 
 const PER_PAGE = 40;
 const SORTS = [
@@ -97,7 +97,7 @@ export default function Gallery() {
         </div>
 
         {error && <ErrorNote onRetry={reload}>We couldn&apos;t load the archive.</ErrorNote>}
-        {loading && <Loading label="Loading posters" />}
+        {loading && <PosterGridSkeleton count={12} label="Loading posters" />}
         {!loading && !error && data.posters.length === 0 && (
           <EmptyState title="Nothing matches">Try fewer filters, or search for the band or venue name.</EmptyState>
         )}

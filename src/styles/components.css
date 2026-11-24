@@ -80,9 +80,28 @@
 
 /* Loading */
 .tax-loading { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-7) 0; font-family: var(--font-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
-.tax-loading::before { content: ""; width: 18px; height: 18px; background: var(--accent); border: var(--border-heavy) solid var(--ink); animation: tax-spin 0.9s steps(4) infinite; }
-@keyframes tax-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .tax-loading::before { animation: none; } }
+/* Three colour passes stamping onto one spot in turn. */
+.tax-loading__press { position: relative; width: 26px; height: 26px; flex: none; border: var(--border-heavy) solid var(--ink); background: var(--card); overflow: hidden; }
+.tax-loading__press span { position: absolute; inset: 0; transform: translateY(-110%); animation: tax-pass 1.5s cubic-bezier(.6, 0, .3, 1) infinite; }
+.tax-loading__press span:nth-child(1) { background: var(--signal-hunt); }
+.tax-loading__press span:nth-child(2) { background: var(--accent); animation-delay: .25s; inset: 4px; }
+.tax-loading__press span:nth-child(3) { background: var(--ink); animation-delay: .5s; inset: 9px; }
+@keyframes tax-pass { 0% { transform: translateY(-110%); } 25%, 70% { transform: translateY(0); } 100% { transform: translateY(110%); } }
+
+/* Skeleton posters: a pink pass (the squeegee) sweeps down each frame, staggered. */
+.skel-poster { display: flex; flex-direction: column; gap: var(--space-3); }
+.skel-poster__frame { position: relative; overflow: hidden; aspect-ratio: 3 / 4; border: var(--border-heavy) solid var(--ink); background: var(--paper-deep); }
+.skel-poster__frame::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 38%; background: linear-gradient(to bottom, transparent, var(--accent) 45%, var(--accent) 55%, transparent); opacity: .55; transform: translateY(-100%); animation: skel-pass 1.8s cubic-bezier(.5, 0, .5, 1) infinite; animation-delay: calc(var(--i, 0) * 120ms); }
+.skel-bar { height: 14px; background: var(--paper-deep); border: var(--border-light) solid var(--ink); animation: skel-pulse 1.8s ease-in-out infinite; animation-delay: calc(var(--i, 0) * 120ms); }
+.skel-bar--thin { height: 10px; }
+@keyframes skel-pass { to { transform: translateY(270%); } }
+@keyframes skel-pulse { 50% { opacity: .45; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .tax-loading__press span { animation: none; transform: none; }
+  .skel-poster__frame::after { animation: none; opacity: 0; }
+  .skel-bar { animation: none; }
+}
 
 /* Spec grid (dl) */
 .tax-specs { margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); border: var(--border-heavy) solid var(--ink); background: var(--card); }
