@@ -105,6 +105,7 @@ function PosterPage({ poster, backTo }) {
           {accountsEnabled && <WallActions poster={poster} signedIn={signedIn} />}
 
           <nav className="jump-links" aria-label="On this page">
+            {poster.series.length > 0 && <a href="#series">Series</a>}
             <a href="#prices">Prices</a>
             {showId && <a href="#show">Setlist</a>}
             {venue && <a href="#venue">Venue</a>}
@@ -124,6 +125,8 @@ function PosterPage({ poster, backTo }) {
           </div>
         </section>
       )}
+
+      {poster.series.map((s) => <SeriesSection key={s.id} series={s} poster={poster} signedIn={signedIn} />)}
 
       <PriceSection poster={poster} />
 
@@ -257,10 +260,10 @@ function WallActions({ poster, signedIn }) {
   const [problem, setProblem] = useState('');
 
   const copies = (mine.data?.copies || []).filter((c) => c.poster?.id === poster.id);
-  const owned = copies.find((c) => c.status === 'owned');
+  const owned = copies.filter((c) => c.status === 'owned');
   const wanted = copies.find((c) => c.status === 'wanted');
 
-  const act = async (fn) => {
+  const act = async (fn, { open = false } = {}) => {
     if (!signedIn) {
       navigate('/signin', { state: { from: location.pathname } });
       return;
@@ -268,8 +271,11 @@ function WallActions({ poster, signedIn }) {
     setBusy(true);
     setProblem('');
     try {
-      await fn();
-      mine.reload();
+      const copy = await fn();
+      // A second copy goes straight to its own page so the edition and
+      // condition can be filled in; otherwise stay here.
+      if (open && copy?.id) navigate(`/wall/${copy.id}`);
+      else mine.reload();
     } catch {
       setProblem("That didn't save. Try again.");
     } finally {
@@ -281,23 +287,37 @@ function WallActions({ poster, signedIn }) {
 
   return (
     <div className="stack">
-      {owned && (
-        <div className="tax-alert tax-alert--ink cluster" style={{ justifyContent: 'space-between' }}>
-          <span>
-            <span className="tax-sticker" style={{ marginRight: 12 }}>On your wall</span>
-            {[owned.editionNumber && `#${owned.editionNumber}`, conditionLabel(owned.condition), owned.forSale && 'listed for sale'].filter(Boolean).join(' · ') || 'Add your edition and condition'}
-          </span>
-          <Link to={`/wall/${owned.id}`} style={{ color: 'var(--paper)', fontWeight: 700 }}>Manage your copy →</Link>
-        </div>
+      {owned.length > 0 && (
+        <section className="tax-panel copies" aria-label="Your copies">
+          <div className="copies__head">
+            <span className="tax-sticker">On your wall</span>
+            <span className="meta">{owned.length} cop{owned.length === 1 ? 'y' : 'ies'}</span>
+          </div>
+          <ul className="copies__list">
+            {owned.map((c) => (
+              <li key={c.id}>
+                <span style={{ flex: '1 1 220px' }}>
+                  {copyLine(c) || 'Add your edition and condition'}
+                  {c.forSale && (
+                    <span className="tax-sticker tax-sticker--match" style={{ marginLeft: 8 }}>
+                      For sale{c.askingPrice != null ? ` ${formatMoney(c.askingPrice)}` : ''}
+                    </span>
+                  )}
+                </span>
+                <Link to={`/wall/${c.id}`} style={{ fontWeight: 700 }}>Manage →</Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
-      {!owned && wanted && (
+      {owned.length === 0 && wanted && (
         <div className="tax-alert tax-alert--note">
           <strong>On your hunt list.</strong> We&apos;ll keep it there until you find one.
         </div>
       )}
       {problem && <ErrorNote>{problem}</ErrorNote>}
       <div className="cluster">
-        {!owned && !wanted && (
+        {owned.length === 0 && !wanted && (
           <>
             <button type="button" className="tax-btn tax-btn--primary tax-btn--lg" disabled={busy} onClick={() => act(() => createCopy({ poster_id: poster.id, status: 'owned' }))}>
               Put it on my wall
@@ -307,15 +327,81 @@ function WallActions({ poster, signedIn }) {
             </button>
           </>
         )}
-        {!owned && wanted && (
+        {owned.length === 0 && wanted && (
           <button type="button" className="tax-btn tax-btn--primary tax-btn--lg" disabled={busy} onClick={() => act(() => updateCopy(wanted.id, { status: 'owned' }))}>
             Got it — move to my wall
+          </button>
+        )}
+        {owned.length > 0 && (
+          <button type="button" className="tax-btn tax-btn--primary tax-btn--lg" disabled={busy} onClick={() => act(() => createCopy({ poster_id: poster.id, status: 'owned' }), { open: true })}>
+            Add another copy
           </button>
         )}
         <a href="mailto:hello@theartexch.com?subject=Poster%20correction" className="tax-btn tax-btn--text">Suggest a correction</a>
       </div>
     </div>
   );
+}
+
+// "88/200 · Mint · bought at the show"
+function copyLine(c) {
+  return [c.editionNumber, conditionLabel(c.condition), c.notes && c.notes.length <= 40 ? c.notes : null].filter(Boolean).join(' · ');
+}
+
+// Every poster in this poster's series (playing cards, chess pieces…), in
+// show order, so a visitor can see the whole set. Signed-in collectors see
+// which ones they have and which they're hunting.
+function SeriesSection({ series, poster, signedIn }) {
+  const set = useApi(() => searchPosters({ series_ids: [series.id], per_page: 100, include: 'band,venue,show' }), [series.id]);
+  const posters = sortByShow(set.data?.posters || []);
+  const ids = posters.map((p) => p.id).join(',');
+  const mine = useApi(() => (signedIn && ids ? listCopies({ poster_id: ids }) : null), [signedIn, ids]);
+
+  if (set.loading) return null;
+  if (set.error || posters.length < 2) return null;
+
+  const status = new Map();
+  for (const c of mine.data?.copies || []) {
+    const id = c.posterId || c.poster?.id;
+    if (c.status === 'owned') status.set(id, 'owned');
+    else if (c.status === 'wanted' && status.get(id) !== 'owned') status.set(id, 'wanted');
+  }
+  const have = posters.filter((p) => status.get(p.id) === 'owned').length;
+
+  return (
+    <section id="series" className="container section" aria-labelledby={`series-${series.id}`}>
+      <div className="section__head">
+        <div>
+          <p className="eyebrow" style={{ margin: '0 0 6px' }}>Part of a series · {posters.length} posters</p>
+          <h2 id={`series-${series.id}`} className="section__title">{series.name}</h2>
+        </div>
+        {signedIn && mine.data && <span className="tax-sticker tax-sticker--ink" style={{ fontSize: 13 }}>You have {have} of {posters.length}</span>}
+      </div>
+      <ol className="poster-grid poster-grid--small series-list">
+        {posters.map((p) => {
+          const current = p.id === poster.id;
+          const mark = status.get(p.id);
+          return (
+            <li key={p.id}>
+              <PosterCard
+                poster={p}
+                to={current ? undefined : p.path}
+                current={current}
+                sticker={mark === 'owned' ? 'On your wall' : mark === 'wanted' ? 'Hunting' : current ? 'This one' : ''}
+                stickerKind={mark === 'owned' ? 'ink' : mark === 'wanted' ? 'hunt' : undefined}
+                meta={p.show?.date ? formatDate(p.show.date) : p.year}
+              />
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
+function sortByShow(posters) {
+  const key = (p) => p.show?.date || (p.year ? `${p.year}` : '9999');
+  return [...posters].sort((a, b) => key(a).localeCompare(key(b)) || (a.name || '').localeCompare(b.name || ''));
 }
 
 // "I was there" for the show behind this poster.

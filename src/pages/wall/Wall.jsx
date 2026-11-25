@@ -45,6 +45,7 @@ function Posters({ status, setStatus }) {
   const request = status === 'wanted' ? { status: 'wanted' } : status === 'sale' ? { status: 'owned', for_sale: 'true' } : { status: 'owned' };
   const { data, error, loading, reload } = useApi(() => listCopies(request), [request]);
   const copies = (data?.copies || []).filter((c) => c.poster);
+  const tiles = wallTiles(copies, status);
 
   return (
     <>
@@ -61,23 +62,62 @@ function Posters({ status, setStatus }) {
       {!loading && !error && copies.length === 0 && <EmptyFor status={status} />}
       {!loading && !error && copies.length > 0 && (
         <>
-          <p className="label" style={{ marginBottom: 'var(--space-4)' }}>{copies.length} poster{copies.length === 1 ? '' : 's'}</p>
+          <p className="label" style={{ marginBottom: 'var(--space-4)' }}>{countLine(status, tiles.length, copies.length)}</p>
           <div className="poster-grid">
-            {copies.map((copy) => (
-              <PosterCard
-                key={copy.id}
-                poster={copy.poster}
-                to={copy.status === 'wanted' ? copy.poster.path : `/wall/${copy.id}`}
-                sticker={copy.status === 'wanted' ? 'Hunting' : copy.forSale ? 'For sale' : copy.editionNumber ? `#${copy.editionNumber}` : null}
-                stickerKind={copy.status === 'wanted' ? 'hunt' : undefined}
-                meta={copy.status === 'wanted' ? copy.poster.year : [conditionLabel(copy.condition), copy.forSale && copy.askingPrice ? `$${copy.askingPrice}` : null].filter(Boolean).join(' · ') || copy.poster.year}
-              />
-            ))}
+            {tiles.map((t) => <PosterCard key={t.key} {...t.card} />)}
           </div>
         </>
       )}
     </>
   );
+}
+
+// On my wall: one tile per poster, with a ×N sticker when you have several
+// copies; it opens the poster page, which lists each one. For sale and the
+// hunt list: one tile per copy, since each listing has its own price.
+function wallTiles(copies, status) {
+  if (status !== 'owned') return copies.map((copy) => ({ key: copy.id, card: copyCard(copy) }));
+  const groups = new Map();
+  for (const copy of copies) {
+    const id = copy.poster.id;
+    if (!groups.has(id)) groups.set(id, []);
+    groups.get(id).push(copy);
+  }
+  return [...groups.values()].map((group) => {
+    if (group.length === 1) return { key: group[0].id, card: copyCard(group[0]) };
+    const poster = group[0].poster;
+    const forSale = group.filter((c) => c.forSale).length;
+    const editions = group.map((c) => c.editionNumber).filter(Boolean);
+    return {
+      key: `poster-${poster.id}`,
+      card: {
+        poster,
+        to: poster.path,
+        sticker: `×${group.length}`,
+        stickerKind: 'ink',
+        meta: [editions.length ? editions.join(' · ') : `${group.length} copies`, forSale ? `${forSale} for sale` : null].filter(Boolean).join(' · '),
+      },
+    };
+  });
+}
+
+function copyCard(copy) {
+  return {
+    poster: copy.poster,
+    to: copy.status === 'wanted' ? copy.poster.path : `/wall/${copy.id}`,
+    sticker: copy.status === 'wanted' ? 'Hunting' : copy.forSale ? 'For sale' : copy.editionNumber ? `#${copy.editionNumber}` : null,
+    stickerKind: copy.status === 'wanted' ? 'hunt' : undefined,
+    meta: copy.status === 'wanted'
+      ? copy.poster.year
+      : [copy.editionNumber && copy.forSale ? copy.editionNumber : null, conditionLabel(copy.condition), copy.forSale && copy.askingPrice ? `$${copy.askingPrice}` : null].filter(Boolean).join(' · ') || copy.poster.year,
+  };
+}
+
+function countLine(status, tiles, copies) {
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  if (status === 'sale') return `${plural(copies, 'copy', 'copies')} for sale`;
+  if (status === 'wanted') return plural(copies, 'poster', 'posters');
+  return tiles === copies ? plural(tiles, 'poster', 'posters') : `${plural(tiles, 'poster', 'posters')} · ${plural(copies, 'copy', 'copies')}`;
 }
 
 function EmptyFor({ status }) {

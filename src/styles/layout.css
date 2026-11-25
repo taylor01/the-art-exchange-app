@@ -216,3 +216,15 @@ button { font: inherit; }
 .thread__more { position: relative; }
 .thread__more > summary { list-style: none; min-height: 44px; padding: 0 var(--space-3); }
 .thread__more > summary::-webkit-details-marker { display: none; }
+
+/* Your copies of a poster, on its page. */
+.copies { overflow: hidden; }
+.copies__head { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); padding: var(--space-3) 18px; background: var(--ink); color: var(--paper); }
+.copies__head .tax-sticker { background: var(--paper); color: var(--ink); }
+.copies__list { list-style: none; margin: 0; padding: 0; }
+.copies__list li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: 14px 18px; border-top: var(--border-light) solid var(--ink); }
+.copies__list li:first-child { border-top: none; }
+
+/* A series on a poster page: the one you're on is outlined in pink. */
+.series-list { list-style: none; margin: 0; padding: 0; }
+.tax-poster--current .tax-poster__frame { box-shadow: 6px 6px 0 var(--accent); outline: var(--border-heavy) solid var(--ink); outline-offset: 4px; }

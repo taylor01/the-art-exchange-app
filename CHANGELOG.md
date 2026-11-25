@@ -6,6 +6,19 @@ All notable changes to this project are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- **Several copies of one poster.** The poster page lists every copy on your wall (edition,
+  condition, for sale and price), each with its own Manage link, and has an **Add another
+  copy** button that opens the new copy so you can fill it in. On My wall, **On my wall**
+  shows one tile per poster with a ×2 / ×3 sticker and the editions underneath, and opens
+  the poster page; **For sale** still shows each listed copy on its own. The count reads
+  "8 posters · 12 copies".
+- **Series on the poster page.** A poster that's part of a series (Playing Cards, Chess
+  Series, the weekend runs…) shows the whole set in show order, with the one you're on
+  outlined. Signed-in collectors see which ones are on their wall or hunt list and
+  "You have 2 of 5".
+
 ## [0.5.1] - 2026-11-23
 
 ### Fixed
